@@ -1,18 +1,33 @@
 import { Injectable } from '@nestjs/common';
+import { Request } from 'express';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ValidateUserDto } from './dto/validate-user.dto';
 
 @Injectable()
 export class AuthService {
-  test() {
-    return 'test';
+  constructor(private readonly prisma: PrismaService) {}
+
+  getUserStatus(req: Request) {
+    console.log(req.user);
+
+    if (req.user) {
+      return { msg: 'Authenticated' };
+    } else {
+      return { msg: 'Not Authenticated' };
+    }
   }
 
-  googleAuth(req) {
-    if (!req.user) {
-      return 'No user from google';
-    }
-    return {
-      message: 'User Info from Google',
-      user: req.user,
-    };
+  async validateUser(
+    validateUserDto: ValidateUserDto,
+  ): Promise<ValidateUserDto> {
+    const user = await this.prisma.user.findFirst({
+      where: { email: validateUserDto.email },
+    });
+
+    if (user) return user;
+
+    return await this.prisma.user.create({
+      data: validateUserDto,
+    });
   }
 }
