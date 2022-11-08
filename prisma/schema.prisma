@@ -24,3 +24,15 @@ model User {
   email         String @unique
   profileImgUrl String
 }
+
+model Book {
+  id                  String  @id @default(uuid())
+  isbn                String  @unique
+  title               String
+  author              String
+  year_of_publication Int
+  publisher           String
+  image_url_s         String?
+  image_url_m         String?
+  image_url_l         String?
+}

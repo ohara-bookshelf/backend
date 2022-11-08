@@ -7,11 +7,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: bookshelfDB
     ports:
       - 5433:5432
     volumes:
-      - /pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     networks:
       - alagaesia
 
@@ -22,11 +22,23 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: bookshelfDB
     ports:
       - 5434:5432
     networks:
       - alagaesia
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=test@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=password
+    networks:
+      - alagaesia
+    ports:
+      - '5050:80'
+    restart: always
 
 networks:
   alagaesia:
