@@ -28,17 +28,5 @@ services:
     networks:
       - alagaesia
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=test@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=password
-    networks:
-      - alagaesia
-    ports:
-      - '5050:80'
-    restart: always
-
 networks:
   alagaesia:
