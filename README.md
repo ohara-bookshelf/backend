@@ -1,7 +1,19 @@
+## Required
+
+.env
+
+```bash
+GAUTH_CLIENT_ID
+GAUTH_CLIENT_SECRET
+GAUTH_CALLBACK_URL
+
+DATABASE_URL
+```
+
 ## Installation
 
 ```bash
-$ npm install
+$ npm start:init:dev
 ```
 
 ## Running the app
@@ -22,6 +34,9 @@ $ npm run start:prod
 ```bash
 # unit tests
 $ npm run test
+
+# pre e2e tests
+$ pretest:e2e
 
 # e2e tests
 $ npm run test:e2e

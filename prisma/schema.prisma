@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String @unique
+  profileImgUrl String
+
+  bookshelves Bookshelf[]
+}
+
+model Book {
+  id String @id @default(uuid())
+
+  isbn                String  @unique
+  title               String
+  author              String
+  year_of_publication Int
+  publisher           String
+  image_url_s         String?
+  image_url_m         String?
+  image_url_l         String?
+
+  bookshelfList BookshelfList[]
+}
+
+model Bookshelf {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+  visible     Visibility @default(PRIVATE)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId        String
+  createdBy     User            @relation(fields: [userId], references: [id])
+  bookshelfList BookshelfList[]
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model BookshelfList {
+  id String @id @default(uuid())
+
+  bookshelfId String
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
