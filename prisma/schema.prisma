@@ -18,7 +18,6 @@ model User {
   profileImgUrl String
 
   bookshelves Bookshelf[]
-  ForkList    ForkList[]
 }
 
 model Book {
@@ -33,7 +32,7 @@ model Book {
   image_url_m         String?
   image_url_l         String?
 
-  BookshelfList BookshelfList[]
+  bookshelfList BookshelfList[]
 }
 
 model Bookshelf {
@@ -48,8 +47,7 @@ model Bookshelf {
 
   userId        String
   createdBy     User            @relation(fields: [userId], references: [id])
-  BookshelfList BookshelfList[]
-  ForkList      ForkList[]
+  bookshelfList BookshelfList[]
 }
 
 enum Visibility {
@@ -68,14 +66,4 @@ model BookshelfList {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-}
-
-model ForkList {
-  id String @id @default(uuid())
-
-  bookshelfId String
-  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
-
-  userId String
-  forkBy User   @relation(fields: [userId], references: [id])
 }
