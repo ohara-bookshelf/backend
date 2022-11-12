@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { BooksModule } from './api/books/books.module';
+import { UsersModule } from './api/users/users.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { BooksModule } from './api/books/books.module';
     PrismaModule,
     PassportModule.register({ session: true }),
     BooksModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

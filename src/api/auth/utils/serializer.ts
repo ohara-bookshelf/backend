@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { AuthService } from '../auth.service';
 import { ValidateUserDto } from '../dto/validate-user.dto';
 
