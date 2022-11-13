@@ -7,7 +7,6 @@ export class BooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: BookQueryDto) {
-    console.log(query?.endYear === undefined);
     return await this.prisma.book.findMany({
       where: {
         title: {

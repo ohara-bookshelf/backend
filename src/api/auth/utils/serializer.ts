@@ -12,7 +12,6 @@ export class SessionSerializer extends PassportSerializer {
   }
 
   serializeUser(user: User, done: (err: Error, user: any) => void): any {
-    console.log('Serializer User');
     done(null, user);
   }
 
@@ -20,7 +19,6 @@ export class SessionSerializer extends PassportSerializer {
     payload: User,
     done: (err: Error, payload: ValidateUserDto) => void,
   ): Promise<any> {
-    console.log('Deserialize User');
     const user = await this.authService.validateUser(payload);
     done(null, user);
   }

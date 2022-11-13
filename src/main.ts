@@ -18,11 +18,11 @@ async function bootstrap() {
   );
   app.use(
     session({
-      secret: 'dev-secret',
+      secret: process.env.SESSION_SECRET,
       saveUninitialized: false,
       resave: false,
       cookie: {
-        maxAge: 60000,
+        maxAge: 1000 * 60 * 60 * 24,
       },
     }),
   );

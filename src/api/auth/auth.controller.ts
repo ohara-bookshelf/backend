@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './utils/guards';
+import { GoogleAuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -9,6 +9,7 @@ export class AuthController {
 
   @Get('status')
   user(@Req() req: Request) {
+    console.log(req.user);
     return this.authService.getUserStatus(req);
   }
 
@@ -20,12 +21,9 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  handleRedirect() {
-    return { msg: 'Google OK' };
-  }
-
-  @Get()
-  test() {
-    return 'awikwok';
+  handleRedirect(@Req() req: Request) {
+    console.log(req.user);
+    const token = this.authService.login(req.user);
+    return { msg: 'Google OK', token };
   }
 }
