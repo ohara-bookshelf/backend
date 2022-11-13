@@ -31,8 +31,6 @@ model Book {
   image_url_s         String?
   image_url_m         String?
   image_url_l         String?
-
-  bookshelfList BookshelfList[]
 }
 
 model Bookshelf {
@@ -45,9 +43,8 @@ model Bookshelf {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  userId        String
-  createdBy     User            @relation(fields: [userId], references: [id])
-  bookshelfList BookshelfList[]
+  userId    String
+  createdBy User   @relation(fields: [userId], references: [id])
 }
 
 enum Visibility {
@@ -55,15 +52,15 @@ enum Visibility {
   PRIVATE
 }
 
-model BookshelfList {
-  id String @id @default(uuid())
+// model BookshelfList {
+//   id String @id @default(uuid())
 
-  bookshelfId String
-  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
+//   bookshelfId String
+//   bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
 
-  bookId String
-  book   Book   @relation(fields: [bookId], references: [id])
+//   bookId String
+//   book   Book   @relation(fields: [bookId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-}
+//   createdAt DateTime @default(now()) @map("created_at")
+//   updatedAt DateTime @updatedAt @map("updated_at")
+// }

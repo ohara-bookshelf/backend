@@ -6,23 +6,38 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { GetUser } from '../auth/decorator/get-user.decorator';
+import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
+import { BookshelvesService } from '../bookshelves/bookshelves.service';
+import { UsersBookshelfQueryDto } from './dto/query.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @UseGuards(JwtAuthGuard)
+  @Post('/create-bookshelf')
+  createBookshelf(
+    @Body() createBookshelfDto: CreateBookshelfDto,
+    @GetUser('id') userId,
+  ) {
+    return this.usersService.createBookshelf(createBookshelfDto, userId);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @UseGuards(JwtAuthGuard)
+  @Get('/bookshelves')
+  findAllUsersBookshelf(
+    @Query() query: UsersBookshelfQueryDto,
+    @GetUser('id') userId,
+  ) {
+    return this.usersService.findAllUsersBookshelf(query, userId);
   }
 
   @Get(':id')
