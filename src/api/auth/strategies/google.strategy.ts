@@ -30,8 +30,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       profileImgUrl: photos[0].value,
     });
 
-    console.log('validate', user);
-
     return user || null;
   }
 }

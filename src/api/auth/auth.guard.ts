@@ -1,17 +1,5 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Observable } from 'rxjs';
-
-@Injectable()
-export class GuardianForce implements CanActivate {
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    console.log('guardian force', request.user);
-    return request.user ? true : false;
-  }
-}
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {

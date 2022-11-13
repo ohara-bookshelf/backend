@@ -9,7 +9,6 @@ export class AuthController {
 
   @Get('status')
   user(@Req() req: Request) {
-    console.log(req.user);
     return this.authService.getUserStatus(req);
   }
 
@@ -21,9 +20,8 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  handleRedirect(@Req() req: Request) {
-    console.log(req.user);
-    const token = this.authService.login(req.user);
-    return { msg: 'Google OK', token };
+  async handleRedirect(@Req() req: Request) {
+    const token = await this.authService.login(req.user);
+    return { msg: 'Google OK', ...token };
   }
 }

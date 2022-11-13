@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { BookshelvesService } from './bookshelves.service';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
@@ -18,14 +19,14 @@ import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
 export class BookshelvesController {
   constructor(private readonly bookshelvesService: BookshelvesService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createBookshelfDto: CreateBookshelfDto, @Req() req: Request) {
     return this.bookshelvesService.create(createBookshelfDto, req);
   }
 
   @Get()
-  findAll(@Req() req: Request) {
-    console.log(req.user);
+  findAll() {
     return this.bookshelvesService.findAll();
   }
 
