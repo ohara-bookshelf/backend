@@ -4,6 +4,6 @@ import { BookshelvesController } from './bookshelves.controller';
 
 @Module({
   controllers: [BookshelvesController],
-  providers: [BookshelvesService]
+  providers: [BookshelvesService],
 })
 export class BookshelvesModule {}
