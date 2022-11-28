@@ -1,27 +1,21 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
+import { CustomGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('status')
-  user(@Req() req: Request) {
-    return this.authService.getUserStatus(req);
+  @UseGuards(CustomGuard)
+  @Post('/login')
+  async login(@Req() req: Request) {
+    return req.user;
   }
 
-  @Get('google/login')
-  @UseGuards(GoogleAuthGuard)
-  handleLogin() {
-    return { msg: 'Google Authentication' };
-  }
-
-  @Get('google/redirect')
-  @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: Request) {
-    const token = await this.authService.login(req.user);
-    return { msg: 'Google OK', ...token };
+  @UseGuards(CustomGuard)
+  @Get('user')
+  getUser(@Req() req: Request) {
+    return req.user;
   }
 }

@@ -8,21 +8,22 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from '../auth/auth.guard';
-import { GetUser } from '../auth/decorator/get-user.decorator';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { BookshelvesService } from '../bookshelves/bookshelves.service';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
+import { GetUser } from './decorator/get-user.decorator';
+import { CustomGuard } from '../auth/auth.guard';
+import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post('/create-bookshelf')
   createBookshelf(
     @Body() createBookshelfDto: CreateBookshelfDto,
@@ -31,13 +32,15 @@ export class UsersController {
     return this.usersService.createBookshelf(createBookshelfDto, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(CustomGuard)
   @Get('/bookshelves')
   findAllUsersBookshelf(
-    @Query() query: UsersBookshelfQueryDto,
-    @GetUser('id') userId,
+    // @Query() query: UsersBookshelfQueryDto,
+    @Req() req: Request,
+    // @GetUser('id') userId,
   ) {
-    return this.usersService.findAllUsersBookshelf(query, userId);
+    // return this.usersService.findAllUsersBookshelf(query, userId);
+    return req.user;
   }
 
   @Get(':id')
