@@ -11,14 +11,12 @@ import {
   Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
-import { BookshelvesService } from '../bookshelves/bookshelves.service';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { GetUser } from './decorator/get-user.decorator';
-import { CustomGuard } from '../auth/auth.guard';
 import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('users')
 export class UsersController {
@@ -32,15 +30,14 @@ export class UsersController {
     return this.usersService.createBookshelf(createBookshelfDto, userId);
   }
 
-  @UseGuards(CustomGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/bookshelves')
   findAllUsersBookshelf(
-    // @Query() query: UsersBookshelfQueryDto,
+    @Query() query: UsersBookshelfQueryDto,
     @Req() req: Request,
-    // @GetUser('id') userId,
+    @GetUser('id') userId: string,
   ) {
-    // return this.usersService.findAllUsersBookshelf(query, userId);
-    return req.user;
+    return this.usersService.findAllUsersBookshelf(query, userId);
   }
 
   @Get(':id')
