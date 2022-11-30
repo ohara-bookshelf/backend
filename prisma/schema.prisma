@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,18 +8,16 @@ datasource db {
 }
 
 model User {
-  id            String @id @default(uuid())
+  id            String      @id @default(uuid())
   firstName     String
   lastName      String
-  email         String @unique
+  sub           String      @unique
   profileImgUrl String
-
-  bookshelves Bookshelf[]
+  bookshelves   Bookshelf[]
 }
 
 model Book {
-  id String @id @default(uuid())
-
+  id                  String  @id @default(uuid())
   isbn                String  @unique
   title               String
   author              String
@@ -34,33 +29,17 @@ model Book {
 }
 
 model Bookshelf {
-  id String @id @default(uuid())
-
+  id          String     @id @default(uuid())
   name        String
   description String?
   visible     Visibility @default(PRIVATE)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  userId    String
-  createdBy User   @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  userId      String
+  createdBy   User       @relation(fields: [userId], references: [id])
 }
 
 enum Visibility {
   PUBLIC
   PRIVATE
 }
-
-// model BookshelfList {
-//   id String @id @default(uuid())
-
-//   bookshelfId String
-//   bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
-
-//   bookId String
-//   book   Book   @relation(fields: [bookId], references: [id])
-
-//   createdAt DateTime @default(now()) @map("created_at")
-//   updatedAt DateTime @updatedAt @map("updated_at")
-// }

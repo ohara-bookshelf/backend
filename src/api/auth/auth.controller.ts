@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { CustomGuard } from './auth.guard';
+import { GetUser } from '../users/decorator/get-user.decorator';
+import { CustomGuard, JwtAuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { AuthenticatedDto } from './dto/req-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -9,11 +11,11 @@ export class AuthController {
 
   @UseGuards(CustomGuard)
   @Post('/login')
-  async login(@Req() req: Request) {
-    return req.user;
+  async login(@GetUser('id') userId: string): Promise<AuthenticatedDto> {
+    return this.authService.login(userId);
   }
 
-  @UseGuards(CustomGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('user')
   getUser(@Req() req: Request) {
     return req.user;
