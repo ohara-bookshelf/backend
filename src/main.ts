@@ -16,6 +16,10 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+  });
   app.use(
     session({
       secret: process.env.SESSION_SECRET,

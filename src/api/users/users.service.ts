@@ -9,7 +9,6 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   createBookshelf(createBookshelfDto: CreateBookshelfDto, userId: string) {
-    console.log('createBookshelfDto', createBookshelfDto);
     return this.prisma.bookshelf.create({
       data: {
         name: createBookshelfDto.name,

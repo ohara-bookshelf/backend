@@ -55,7 +55,7 @@ export class AuthService {
           data: {
             firstName: payload.given_name,
             lastName: payload.family_name,
-            profileImgUrl: payload.profile,
+            profileImgUrl: payload.picture,
           },
         });
       } else {
@@ -64,12 +64,11 @@ export class AuthService {
             sub: payload.sub,
             firstName: payload.given_name,
             lastName: payload.family_name,
-            profileImgUrl: payload.profile,
+            profileImgUrl: payload.picture,
           },
         });
       }
     } catch (error) {
-      console.log(error);
       return null;
     }
   }
