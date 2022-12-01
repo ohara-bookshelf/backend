@@ -6,14 +6,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { BooksModule } from './api/books/books.module';
+import { UsersModule } from './api/users/users.module';
+import { BookshelvesModule } from './api/bookshelves/bookshelves.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    PassportModule.register({ session: true }),
     AuthModule,
     PrismaModule,
-    PassportModule.register({ session: true }),
     BooksModule,
+    UsersModule,
+    BookshelvesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
