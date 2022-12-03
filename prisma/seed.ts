@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Start seeding book... 🌱');
 
-  await prisma.$queryRaw`COPY public."Book" FROM './seeds/books'`;
+  await prisma.$queryRaw`COPY public."Book" FROM '/seeds/books.bin'`;
 
   console.log('Seed book done! 🌱');
 }

@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [uuidOssp(map: "uuid-ossp")]
 }
 
 model User {
@@ -17,8 +19,8 @@ model User {
 }
 
 model Book {
-  id                  String  @id @default(uuid())
-  isbn                String  @unique
+  id                  String   @id @default("public.uuid_generate_v4()")
+  isbn                String   @unique
   title               String
   author              String
   year_of_publication Int
@@ -26,6 +28,8 @@ model Book {
   image_url_s         String?
   image_url_m         String?
   image_url_l         String?
+  description         String?
+  genres              String[]
 }
 
 model Bookshelf {

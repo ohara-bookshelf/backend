@@ -1,3 +1,6 @@
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CreateEnum
 CREATE TYPE "Visibility" AS ENUM ('PUBLIC', 'PRIVATE');
 
@@ -6,7 +9,7 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
-    "serviceId" TEXT NOT NULL,
+    "sub" TEXT NOT NULL,
     "profileImgUrl" TEXT NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -14,7 +17,7 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Book" (
-    "id" TEXT NOT NULL,
+    "id" TEXT NOT NULL DEFAULT 'public.uuid_generate_v4()',
     "isbn" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "author" TEXT NOT NULL,
@@ -23,6 +26,8 @@ CREATE TABLE "Book" (
     "image_url_s" TEXT,
     "image_url_m" TEXT,
     "image_url_l" TEXT,
+    "description" TEXT,
+    "genres" TEXT[],
 
     CONSTRAINT "Book_pkey" PRIMARY KEY ("id")
 );
@@ -41,7 +46,7 @@ CREATE TABLE "Bookshelf" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_serviceId_key" ON "User"("serviceId");
+CREATE UNIQUE INDEX "User_sub_key" ON "User"("sub");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Book_isbn_key" ON "Book"("isbn");
