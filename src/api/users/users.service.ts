@@ -8,23 +8,44 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  createBookshelf(createBookshelfDto: CreateBookshelfDto, userId: string) {
-    return this.prisma.bookshelf.create({
+  async createBookshelf(
+    createBookshelfDto: CreateBookshelfDto,
+    userId: string,
+  ) {
+    return await this.prisma.bookshelf.create({
       data: {
         name: createBookshelfDto.name,
         description: createBookshelfDto.description,
         visible: createBookshelfDto.visible,
-        createdBy: { connect: { id: userId } },
+        owner: { connect: { id: userId } },
+        books: {
+          create: createBookshelfDto.books.map((book) => ({
+            book: { connect: { id: book } },
+          })),
+        },
+      },
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
   }
 
-  findAllUsersBookshelf(query: UsersBookshelfQueryDto, userId: string) {
-    return this.prisma.bookshelf.findMany({
+  async findAllUsersBookshelf(query: UsersBookshelfQueryDto, userId: string) {
+    console.log(userId);
+    return await this.prisma.bookshelf.findMany({
       where: {
-        userId,
-        visible: {
-          equals: query.visible,
+        visible: query.visible,
+        userId: userId,
+      },
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
         },
       },
     });

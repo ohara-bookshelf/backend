@@ -45,6 +45,15 @@ CREATE TABLE "Bookshelf" (
     CONSTRAINT "Bookshelf_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "BookshelfBook" (
+    "bookshelfId" TEXT NOT NULL,
+    "bookId" TEXT NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "BookshelfBook_pkey" PRIMARY KEY ("bookshelfId","bookId")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_sub_key" ON "User"("sub");
 
@@ -53,3 +62,9 @@ CREATE UNIQUE INDEX "Book_isbn_key" ON "Book"("isbn");
 
 -- AddForeignKey
 ALTER TABLE "Bookshelf" ADD CONSTRAINT "Bookshelf_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BookshelfBook" ADD CONSTRAINT "BookshelfBook_bookshelfId_fkey" FOREIGN KEY ("bookshelfId") REFERENCES "Bookshelf"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BookshelfBook" ADD CONSTRAINT "BookshelfBook_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

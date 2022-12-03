@@ -17,16 +17,18 @@ import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { GetUser } from './decorator/get-user.decorator';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards';
+import { Bookshelf } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('/create-bookshelf')
+  @UseGuards(JwtAuthGuard)
+  @Post('/bookshelf')
   createBookshelf(
     @Body() createBookshelfDto: CreateBookshelfDto,
-    @GetUser('id') userId,
-  ) {
+    @GetUser('id') userId: string,
+  ): Promise<Bookshelf> {
     return this.usersService.createBookshelf(createBookshelfDto, userId);
   }
 
@@ -34,19 +36,22 @@ export class UsersController {
   @Get('/bookshelves')
   findAllUsersBookshelf(
     @Query() query: UsersBookshelfQueryDto,
-    @Req() req: Request,
     @GetUser('id') userId: string,
-  ) {
+  ): Promise<Bookshelf[]> {
     return this.usersService.findAllUsersBookshelf(query, userId);
   }
 
-  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @Get('/bookshelves/:id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  @Patch('/bookshelves/:id')
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<Bookshelf> {
     return this.usersService.update(+id, updateUserDto);
   }
 
