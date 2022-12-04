@@ -10,12 +10,13 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   firstName     String
   lastName      String
-  sub           String      @unique
+  sub           String        @unique
   profileImgUrl String
   bookshelves   Bookshelf[]
+  forkedshelves Forkedshelf[]
 }
 
 model Book {
@@ -43,6 +44,7 @@ model Bookshelf {
   userId      String
   owner       User            @relation(fields: [userId], references: [id])
   books       BookshelfBook[]
+  userForks   Forkedshelf[]
 }
 
 enum Visibility {
@@ -58,4 +60,12 @@ model BookshelfBook {
   assignedAt  DateTime  @default(now())
 
   @@id([bookshelfId, bookId])
+}
+
+model Forkedshelf {
+  id          String    @id @default(dbgenerated("public.uuid_generate_v4()"))
+  readerId    String
+  bookshelfId String
+  reader      User      @relation(fields: [readerId], references: [id])
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
 }

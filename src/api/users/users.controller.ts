@@ -15,7 +15,7 @@ import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { GetUser } from './decorator/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
-import { Bookshelf } from '@prisma/client';
+import { Bookshelf, Forkedshelf } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -62,5 +62,38 @@ export class UsersController {
   @Delete('/bookshelves/:id')
   remove(@Param('id') bookshelfId: string, @GetUser('id') userId: string) {
     return this.usersService.remove(bookshelfId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/forks')
+  forkBookshelf(
+    @Body('bookshelfId') bookshelfId: string,
+    @GetUser('id') userId: string,
+  ): Promise<Forkedshelf> {
+    return this.usersService.forkBookshelf(bookshelfId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/forks')
+  findUserForks(@GetUser('id') userId: string): Promise<Forkedshelf[]> {
+    return this.usersService.findUserForks(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/forks/:id')
+  getUserForkDetail(
+    @Param('id') forkedshelfId: string,
+    @GetUser('id') userId: string,
+  ): Promise<Forkedshelf> {
+    return this.usersService.getUserForkDetail(forkedshelfId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/forks/:id')
+  deleteUserFork(
+    @Param('id') forkedshelfId: string,
+    @GetUser('id') userId: string,
+  ): Promise<string> {
+    return this.usersService.deleteUserFork(forkedshelfId, userId);
   }
 }

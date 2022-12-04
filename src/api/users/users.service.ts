@@ -3,7 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Bookshelf } from '@prisma/client';
+import { Bookshelf, Forkedshelf } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
@@ -145,5 +145,143 @@ export class UsersService {
     console.log(deleteUser);
 
     return bookshelfId;
+  }
+
+  async forkBookshelf(bookshelfId: string, userId: string) {
+    const bookshelf = await this.prisma.bookshelf.findUnique({
+      where: {
+        id: bookshelfId,
+      },
+      include: {
+        owner: true,
+      },
+    });
+
+    // * Chekc if bookshelf exist
+    if (!bookshelf) {
+      throw new NotFoundException('Bookshelf not found');
+    }
+
+    // * Check if user is not the owner of the bookshelf
+    if (bookshelf.owner.id === userId) {
+      throw new UnauthorizedException('You are the owner of this bookshelf');
+    }
+
+    // * Check if bookshlef is public
+    if (bookshelf.visible === 'PRIVATE') {
+      throw new UnauthorizedException('This bookshelf is private');
+    }
+
+    // * Create new bookshelf
+    const newBookshelf = await this.prisma.forkedshelf.create({
+      data: {
+        bookshelf: { connect: { id: bookshelfId } },
+        reader: { connect: { id: userId } },
+      },
+      include: {
+        bookshelf: {
+          include: {
+            books: {
+              include: {
+                book: true,
+              },
+            },
+            owner: true,
+          },
+        },
+        reader: true,
+      },
+    });
+
+    return newBookshelf;
+  }
+
+  async findUserForks(userId: string) {
+    return await this.prisma.forkedshelf.findMany({
+      where: {
+        AND: [{ readerId: userId, bookshelf: { visible: 'PUBLIC' } }],
+      },
+      include: {
+        bookshelf: {
+          include: {
+            books: {
+              include: {
+                book: true,
+              },
+            },
+            owner: true,
+          },
+        },
+        reader: true,
+      },
+    });
+  }
+
+  async getUserForkDetail(
+    forkedshelfId: string,
+    userId: string,
+  ): Promise<Forkedshelf> {
+    const forkshelf = await this.prisma.forkedshelf.findFirst({
+      where: {
+        AND: [{ id: forkedshelfId, bookshelf: { visible: 'PUBLIC' } }],
+      },
+      include: {
+        bookshelf: {
+          include: {
+            books: {
+              include: {
+                book: true,
+              },
+            },
+            owner: true,
+          },
+        },
+        reader: true,
+      },
+    });
+
+    if (!forkshelf) {
+      throw new NotFoundException('Forkedshelf not found or it is private');
+    }
+
+    if (forkshelf.reader.id !== userId) {
+      throw new UnauthorizedException(
+        'You are not allowed to access this fork',
+      );
+    }
+
+    if (forkshelf.bookshelf.visible === 'PRIVATE') {
+      throw new UnauthorizedException('This bookshelf is private');
+    }
+
+    return forkshelf;
+  }
+
+  async deleteUserFork(forkedshelfId: string, userId: string) {
+    const forkshelf = await this.prisma.forkedshelf.findUnique({
+      where: {
+        id: forkedshelfId,
+      },
+    });
+
+    // * Check if forkshelf exist
+    if (!forkshelf) {
+      throw new NotFoundException('Forkshelf not found');
+    }
+
+    // * Check if user is the owner of the forkshelf
+    if (forkshelf.readerId !== userId) {
+      throw new UnauthorizedException(
+        'You are not allowed to delete this forkshelf',
+      );
+    }
+
+    const deletedForkshelf = await this.prisma.forkedshelf.delete({
+      where: {
+        id: forkedshelfId,
+      },
+    });
+
+    return deletedForkshelf.id;
   }
 }
