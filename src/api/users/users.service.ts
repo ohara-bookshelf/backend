@@ -13,6 +13,38 @@ import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        bookshelves: {
+          include: {
+            books: true,
+          },
+        },
+        forkedshelves: {
+          include: {
+            bookshelf: {
+              include: {
+                books: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const totalFork = await this.prisma.forkedshelf.count({
+      where: {
+        bookshelf: { AND: [{ visible: 'PUBLIC', owner: { id: userId } }] },
+      },
+    });
+
+    return { ...user, totalFork: totalFork };
+  }
+
   async createBookshelf(
     createBookshelfDto: CreateBookshelfDto,
     userId: string,

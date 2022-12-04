@@ -22,6 +22,12 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getProfile(@GetUser('id') userId: string) {
+    return this.usersService.getProfile(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('/bookshelf')
   createBookshelf(
     @Body() createBookshelfDto: CreateBookshelfDto,
