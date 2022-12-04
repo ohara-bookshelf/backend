@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "npx ts-node prisma/seed.ts"
   },
   "scripts": {
     "prebuild": "rimraf dist",
@@ -45,6 +45,7 @@
     "dotenv": "^16.0.3",
     "express-session": "^1.17.3",
     "google-auth-library": "^8.7.0",
+    "morgan": "^1.10.0",
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
     "passport-google-oauth20": "^2.0.0",

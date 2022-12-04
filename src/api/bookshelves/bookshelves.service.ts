@@ -9,7 +9,7 @@ export class BookshelvesService {
     return await this.prisma.bookshelf.findMany({
       where: { visible: 'PUBLIC' },
       include: {
-        createdBy: true,
+        owner: true,
       },
     });
   }

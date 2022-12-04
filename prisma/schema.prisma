@@ -10,17 +10,18 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   firstName     String
   lastName      String
-  sub           String      @unique
+  sub           String        @unique
   profileImgUrl String
   bookshelves   Bookshelf[]
+  forkedshelves Forkedshelf[]
 }
 
 model Book {
-  id                  String   @id @default("public.uuid_generate_v4()")
-  isbn                String   @unique
+  id                  String          @id @default(dbgenerated("public.uuid_generate_v4()"))
+  isbn                String          @unique
   title               String
   author              String
   year_of_publication Int
@@ -30,20 +31,41 @@ model Book {
   image_url_l         String?
   description         String?
   genres              String[]
+  Bookshelves         BookshelfBook[]
 }
 
 model Bookshelf {
-  id          String     @id @default(uuid())
+  id          String          @id @default(uuid())
   name        String
   description String?
-  visible     Visibility @default(PRIVATE)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  visible     Visibility      @default(PRIVATE)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
   userId      String
-  createdBy   User       @relation(fields: [userId], references: [id])
+  owner       User            @relation(fields: [userId], references: [id])
+  books       BookshelfBook[]
+  userForks   Forkedshelf[]
 }
 
 enum Visibility {
   PUBLIC
   PRIVATE
+}
+
+model BookshelfBook {
+  bookshelfId String
+  bookId      String
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
+  book        Book      @relation(fields: [bookId], references: [id])
+  assignedAt  DateTime  @default(now())
+
+  @@id([bookshelfId, bookId])
+}
+
+model Forkedshelf {
+  id          String    @id @default(dbgenerated("public.uuid_generate_v4()"))
+  readerId    String
+  bookshelfId String
+  reader      User      @relation(fields: [readerId], references: [id])
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
 }

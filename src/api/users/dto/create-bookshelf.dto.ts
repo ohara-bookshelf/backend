@@ -1,5 +1,5 @@
 import { Prisma, Visibility } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBookshelfDto implements Prisma.BookshelfCreateInput {
   @IsNotEmpty()
@@ -12,6 +12,11 @@ export class CreateBookshelfDto implements Prisma.BookshelfCreateInput {
   @IsEnum(Visibility)
   visible: Visibility;
 
-  // @IsNotEmpty()
-  createdBy: Prisma.UserCreateNestedOneWithoutBookshelvesInput;
+  @IsOptional()
+  @IsString()
+  owner: Prisma.UserCreateNestedOneWithoutBookshelvesInput;
+
+  @IsOptional()
+  @IsString({ each: true })
+  books?: Prisma.BookshelfBookCreateNestedManyWithoutBookshelfInput & string[];
 }
