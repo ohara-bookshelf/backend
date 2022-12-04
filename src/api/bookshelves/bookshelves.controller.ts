@@ -12,7 +12,7 @@ export class BookshelvesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookshelvesService.findOne(+id);
+  findOne(@Param('id') bookshelfId: string) {
+    return this.bookshelvesService.findOne(bookshelfId);
   }
 }
