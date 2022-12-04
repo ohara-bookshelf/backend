@@ -19,7 +19,7 @@ model User {
 }
 
 model Book {
-  id                  String          @id @default("public.uuid_generate_v4()")
+  id                  String          @id @default(dbgenerated("public.uuid_generate_v4()"))
   isbn                String          @unique
   title               String
   author              String

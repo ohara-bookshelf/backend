@@ -8,15 +8,13 @@ import {
   Delete,
   UseGuards,
   Query,
-  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { GetUser } from './decorator/get-user.decorator';
-import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards';
+import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
 import { Bookshelf } from '@prisma/client';
 
 @Controller('users')
@@ -43,20 +41,26 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/bookshelves/:id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(
+    @Param('id') bookshelfId: string,
+    @GetUser('id') userId: string,
+  ): Promise<Bookshelf> {
+    return this.usersService.findOne(bookshelfId, userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/bookshelves/:id')
   update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Param('id') BookshelfId: string,
+    @Body() updateBookshelfDto: UpdateBookshelfDto,
+    @GetUser('id') userId: string,
   ): Promise<Bookshelf> {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(BookshelfId, updateBookshelfDto, userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Delete('/bookshelves/:id')
+  remove(@Param('id') bookshelfId: string, @GetUser('id') userId: string) {
+    return this.usersService.remove(bookshelfId, userId);
   }
 }
