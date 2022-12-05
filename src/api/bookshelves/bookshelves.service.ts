@@ -8,6 +8,8 @@ export class BookshelvesService {
   async findAll() {
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: { visible: 'PUBLIC' },
+      orderBy: { userForks: { _count: 'desc' } },
+      take: 100,
       include: {
         owner: true,
         books: {
