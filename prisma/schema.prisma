@@ -1,12 +1,10 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [uuidOssp(map: "uuid-ossp")]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,7 +18,7 @@ model User {
 }
 
 model Book {
-  id                  String          @id @default(dbgenerated("public.uuid_generate_v4()"))
+  id                  String          @id @default(uuid())
   isbn                String          @unique
   title               String
   author              String
@@ -63,7 +61,7 @@ model BookshelfBook {
 }
 
 model Forkedshelf {
-  id          String    @id @default(dbgenerated("public.uuid_generate_v4()"))
+  id          String    @id @default(uuid())
   readerId    String
   bookshelfId String
   reader      User      @relation(fields: [readerId], references: [id])

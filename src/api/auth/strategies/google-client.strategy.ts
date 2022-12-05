@@ -3,11 +3,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class GoogleClientStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService, private prisma: PrismaService) {
+  constructor(private authService: AuthService) {
     super();
   }
 
