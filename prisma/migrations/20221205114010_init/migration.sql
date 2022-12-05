@@ -1,6 +1,3 @@
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- CreateEnum
 CREATE TYPE "Visibility" AS ENUM ('PUBLIC', 'PRIVATE');
 
@@ -17,7 +14,7 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Book" (
-    "id" TEXT NOT NULL DEFAULT 'public.uuid_generate_v4()',
+    "id" TEXT NOT NULL,
     "isbn" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "author" TEXT NOT NULL,
@@ -54,6 +51,15 @@ CREATE TABLE "BookshelfBook" (
     CONSTRAINT "BookshelfBook_pkey" PRIMARY KEY ("bookshelfId","bookId")
 );
 
+-- CreateTable
+CREATE TABLE "Forkedshelf" (
+    "id" TEXT NOT NULL,
+    "readerId" TEXT NOT NULL,
+    "bookshelfId" TEXT NOT NULL,
+
+    CONSTRAINT "Forkedshelf_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_sub_key" ON "User"("sub");
 
@@ -68,3 +74,9 @@ ALTER TABLE "BookshelfBook" ADD CONSTRAINT "BookshelfBook_bookshelfId_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "BookshelfBook" ADD CONSTRAINT "BookshelfBook_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Forkedshelf" ADD CONSTRAINT "Forkedshelf_readerId_fkey" FOREIGN KEY ("readerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Forkedshelf" ADD CONSTRAINT "Forkedshelf_bookshelfId_fkey" FOREIGN KEY ("bookshelfId") REFERENCES "Bookshelf"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
