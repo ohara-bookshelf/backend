@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const PORT = process.env.PORT || 5001;
 
   app.setGlobalPrefix('api');
 
@@ -41,6 +42,8 @@ async function bootstrap() {
 
   app.use(passport.session());
 
-  await app.listen(5000);
+  await app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} 🚀`);
+  });
 }
 bootstrap();
