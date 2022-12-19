@@ -1,16 +1,11 @@
-## Required
+## Pre-requisites
 
-.env
-
-```bash
-GAUTH_CLIENT_ID
-GAUTH_CLIENT_SECRET
-GAUTH_CALLBACK_URL
-
-DATABASE_URL
-SESSION_SECRET
-JWT_SECRET
-```
+- Docker with docker compose installed
+- env file with the following variables
+  - GAUTH_CLIENT_ID
+  - DATABASE_URL
+  - SESSION_SECRET
+  - JWT_SECRET
 
 ## Installation
 
