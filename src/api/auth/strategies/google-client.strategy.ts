@@ -12,12 +12,12 @@ export class GoogleClientStrategy extends PassportStrategy(Strategy) {
 
   async validate(req: Request): Promise<any> {
     const token = req.headers.authorization.split(' ')[1];
-    const user = await this.authService.validateGoogleToken(token);
+    const response = await this.authService.validateGoogleToken(token);
 
-    if (!user) {
-      throw new UnauthorizedException(`Google access token is not valid`);
+    if (response instanceof Error) {
+      throw new UnauthorizedException(response.message || 'Unauthorized');
     }
 
-    return user;
+    return response;
   }
 }

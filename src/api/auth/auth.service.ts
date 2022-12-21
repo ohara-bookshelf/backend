@@ -69,7 +69,7 @@ export class AuthService {
         });
       }
     } catch (error) {
-      return null;
+      return error;
     }
   }
 }
