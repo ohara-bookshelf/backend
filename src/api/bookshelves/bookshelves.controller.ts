@@ -6,6 +6,11 @@ import { BookshelvesService } from './bookshelves.service';
 export class BookshelvesController {
   constructor(private readonly bookshelvesService: BookshelvesService) {}
 
+  @Get()
+  findAll() {
+    return this.bookshelvesService.findAll();
+  }
+
   @Get('popular')
   findPopular() {
     return this.bookshelvesService.findPopular();

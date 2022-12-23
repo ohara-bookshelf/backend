@@ -72,7 +72,6 @@ export class UsersService {
   }
 
   async findAllUsersBookshelf(query: UsersBookshelfQueryDto, userId: string) {
-    console.log(userId);
     return await this.prisma.bookshelf.findMany({
       where: {
         visible: query.visible,
@@ -180,9 +179,9 @@ export class UsersService {
   }
 
   async forkBookshelf(bookshelfId: string, userId: string) {
-    const bookshelf = await this.prisma.bookshelf.findUnique({
+    const bookshelf = await this.prisma.bookshelf.findFirst({
       where: {
-        id: bookshelfId,
+        AND: [{ id: bookshelfId }, { visible: 'PUBLIC' }],
       },
       include: {
         owner: true,
@@ -204,24 +203,39 @@ export class UsersService {
       throw new UnauthorizedException('This bookshelf is private');
     }
 
+    const isForked = await this.prisma.forkedshelf.findFirst({
+      where: {
+        AND: [{ bookshelfId: bookshelfId }, { readerId: userId }],
+      },
+    });
+
+    // * Check if bookshelf is already forked
+    if (isForked) {
+      throw new UnauthorizedException('This bookshelf is already forked');
+    }
+
     // * Create new bookshelf
     const newBookshelf = await this.prisma.forkedshelf.create({
       data: {
         bookshelf: { connect: { id: bookshelfId } },
         reader: { connect: { id: userId } },
       },
-      include: {
+      select: {
+        id: true,
+
         bookshelf: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            visible: true,
             books: {
-              include: {
+              select: {
                 book: true,
               },
             },
-            owner: true,
           },
         },
-        reader: true,
       },
     });
 
