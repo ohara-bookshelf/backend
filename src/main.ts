@@ -25,7 +25,9 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://bookshelf-client.onrender.com/',
+      'https://bookshelf-client-develop.onrender.com/',
       'https://tasarim.430am.dev',
+      'https://tasarim.dev.430am.dev',
     ],
     credentials: true,
   });
