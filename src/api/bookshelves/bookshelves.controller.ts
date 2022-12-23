@@ -11,6 +11,11 @@ export class BookshelvesController {
     return this.bookshelvesService.findAll();
   }
 
+  @Get('popular')
+  findPopular() {
+    return this.bookshelvesService.findPopular();
+  }
+
   @Get(':id')
   findOne(@Param('id') bookshelfId: string) {
     return this.bookshelvesService.findOne(bookshelfId);

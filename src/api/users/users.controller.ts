@@ -75,7 +75,7 @@ export class UsersController {
   forkBookshelf(
     @Body('bookshelfId') bookshelfId: string,
     @GetUser('id') userId: string,
-  ): Promise<Forkedshelf> {
+  ) {
     return this.usersService.forkBookshelf(bookshelfId, userId);
   }
 

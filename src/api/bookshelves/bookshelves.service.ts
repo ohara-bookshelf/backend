@@ -8,18 +8,65 @@ export class BookshelvesService {
   async findAll() {
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: { visible: 'PUBLIC' },
+      orderBy: { createdAt: 'desc' },
+      take: 101,
+      select: {
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
+        },
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImgUrl: true,
+          },
+        },
+        books: {
+          select: {
+            book: true,
+          },
+        },
+      },
+    });
+
+    return bookshelves;
+  }
+
+  async findPopular() {
+    const bookshelves = await this.prisma.bookshelf.findMany({
+      where: { visible: 'PUBLIC' },
       orderBy: { userForks: { _count: 'desc' } },
       take: 100,
-      include: {
-        owner: true,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImgUrl: true,
+          },
+        },
         books: {
-          include: {
+          select: {
             book: true,
           },
         },
         _count: {
           select: {
             userForks: true,
+            books: true,
           },
         },
       },
