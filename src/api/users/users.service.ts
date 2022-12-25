@@ -23,6 +23,12 @@ export class UsersService {
         bookshelves: {
           include: {
             books: true,
+            _count: {
+              select: {
+                userForks: true,
+                books: true,
+              },
+            },
           },
         },
         forkedshelves: {
@@ -30,6 +36,20 @@ export class UsersService {
             bookshelf: {
               include: {
                 books: true,
+                owner: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImgUrl: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    userForks: true,
+                    books: true,
+                  },
+                },
               },
             },
           },
@@ -168,13 +188,11 @@ export class UsersService {
       );
     }
 
-    const deleteUser = await this.prisma.bookshelf.delete({
+    await this.prisma.bookshelf.delete({
       where: {
         id: bookshelfId,
       },
     });
-
-    console.log(deleteUser);
 
     return bookshelfId;
   }

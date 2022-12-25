@@ -50,6 +50,7 @@ async function bootstrap() {
   app.use(passport.session());
 
   await app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`Server running on port ${PORT} 🚀`);
   });
 }
