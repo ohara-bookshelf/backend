@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -22,6 +23,12 @@ export class UsersService {
         bookshelves: {
           include: {
             books: true,
+            _count: {
+              select: {
+                userForks: true,
+                books: true,
+              },
+            },
           },
         },
         forkedshelves: {
@@ -29,6 +36,20 @@ export class UsersService {
             bookshelf: {
               include: {
                 books: true,
+                owner: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImgUrl: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    userForks: true,
+                    books: true,
+                  },
+                },
               },
             },
           },
@@ -87,7 +108,10 @@ export class UsersService {
     });
   }
 
-  async findOne(bookshelfId: string, userId: string): Promise<Bookshelf> {
+  async findOneBookshelf(
+    bookshelfId: string,
+    userId: string,
+  ): Promise<Bookshelf> {
     const bookshelf = await this.prisma.bookshelf.findFirst({
       where: {
         AND: [{ id: bookshelfId }, { userId: userId }],
@@ -96,6 +120,12 @@ export class UsersService {
         books: {
           include: {
             book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
           },
         },
       },
@@ -167,13 +197,11 @@ export class UsersService {
       );
     }
 
-    const deleteUser = await this.prisma.bookshelf.delete({
+    await this.prisma.bookshelf.delete({
       where: {
         id: bookshelfId,
       },
     });
-
-    console.log(deleteUser);
 
     return bookshelfId;
   }
@@ -200,7 +228,7 @@ export class UsersService {
 
     // * Check if bookshlef is public
     if (bookshelf.visible === 'PRIVATE') {
-      throw new UnauthorizedException('This bookshelf is private');
+      throw new ForbiddenException('This bookshelf is private');
     }
 
     const isForked = await this.prisma.forkedshelf.findFirst({

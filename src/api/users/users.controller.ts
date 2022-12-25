@@ -51,7 +51,7 @@ export class UsersController {
     @Param('id') bookshelfId: string,
     @GetUser('id') userId: string,
   ): Promise<Bookshelf> {
-    return this.usersService.findOne(bookshelfId, userId);
+    return this.usersService.findOneBookshelf(bookshelfId, userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -71,9 +71,9 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/forks')
+  @Post('/bookshelves/:bookshelfId/fork')
   forkBookshelf(
-    @Body('bookshelfId') bookshelfId: string,
+    @Param('id') bookshelfId: string,
     @GetUser('id') userId: string,
   ) {
     return this.usersService.forkBookshelf(bookshelfId, userId);
