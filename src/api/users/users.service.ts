@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -200,7 +201,7 @@ export class UsersService {
 
     // * Check if bookshlef is public
     if (bookshelf.visible === 'PRIVATE') {
-      throw new UnauthorizedException('This bookshelf is private');
+      throw new ForbiddenException('This bookshelf is private');
     }
 
     const isForked = await this.prisma.forkedshelf.findFirst({
