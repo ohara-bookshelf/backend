@@ -108,7 +108,10 @@ export class UsersService {
     });
   }
 
-  async findOne(bookshelfId: string, userId: string): Promise<Bookshelf> {
+  async findOneBookshelf(
+    bookshelfId: string,
+    userId: string,
+  ): Promise<Bookshelf> {
     const bookshelf = await this.prisma.bookshelf.findFirst({
       where: {
         AND: [{ id: bookshelfId }, { userId: userId }],
@@ -117,6 +120,12 @@ export class UsersService {
         books: {
           include: {
             book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
           },
         },
       },

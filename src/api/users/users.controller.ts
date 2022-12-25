@@ -51,7 +51,7 @@ export class UsersController {
     @Param('id') bookshelfId: string,
     @GetUser('id') userId: string,
   ): Promise<Bookshelf> {
-    return this.usersService.findOne(bookshelfId, userId);
+    return this.usersService.findOneBookshelf(bookshelfId, userId);
   }
 
   @UseGuards(JwtAuthGuard)
