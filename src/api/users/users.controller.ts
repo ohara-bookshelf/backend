@@ -53,18 +53,25 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('/bookshelves/:id')
-  update(
+  updateBookshelf(
     @Param('id') BookshelfId: string,
     @Body() updateBookshelfDto: UpdateBookshelfDto,
     @GetUser('id') userId: string,
   ) {
-    return this.usersService.update(BookshelfId, updateBookshelfDto, userId);
+    return this.usersService.updateBookshelf(
+      BookshelfId,
+      updateBookshelfDto,
+      userId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('/bookshelves/:id')
-  remove(@Param('id') bookshelfId: string, @GetUser('id') userId: string) {
-    return this.usersService.remove(bookshelfId, userId);
+  deleteBookshelf(
+    @Param('id') bookshelfId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.usersService.deleteBookshelf(bookshelfId, userId);
   }
 
   @UseGuards(JwtAuthGuard)

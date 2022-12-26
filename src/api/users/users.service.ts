@@ -146,7 +146,7 @@ export class UsersService {
     return bookshelf;
   }
 
-  async update(
+  async updateBookshelf(
     bookshelfId: string,
     updateBookshelfDto: UpdateBookshelfDto,
     userId: string,
@@ -176,9 +176,14 @@ export class UsersService {
           })),
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        createdAt: true,
         books: {
-          include: {
+          select: {
             book: true,
           },
         },
@@ -188,7 +193,10 @@ export class UsersService {
     return updatedBookshelf;
   }
 
-  async remove(bookshelfId: string, userId: string): Promise<string> {
+  async deleteBookshelf(
+    bookshelfId: string,
+    userId: string,
+  ): Promise<{ id: string }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -211,7 +219,7 @@ export class UsersService {
       },
     });
 
-    return bookshelfId;
+    return { id: bookshelfId };
   }
 
   async forkBookshelf(bookshelfId: string, userId: string) {
