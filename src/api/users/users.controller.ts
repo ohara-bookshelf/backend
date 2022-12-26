@@ -28,11 +28,11 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/bookshelf')
+  @Post('/bookshelves')
   createBookshelf(
     @Body() createBookshelfDto: CreateBookshelfDto,
     @GetUser('id') userId: string,
-  ): Promise<Bookshelf> {
+  ) {
     return this.usersService.createBookshelf(createBookshelfDto, userId);
   }
 
@@ -47,10 +47,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/bookshelves/:id')
-  findOne(
-    @Param('id') bookshelfId: string,
-    @GetUser('id') userId: string,
-  ): Promise<Bookshelf> {
+  findOne(@Param('id') bookshelfId: string, @GetUser('id') userId: string) {
     return this.usersService.findOneBookshelf(bookshelfId, userId);
   }
 
@@ -60,7 +57,7 @@ export class UsersController {
     @Param('id') BookshelfId: string,
     @Body() updateBookshelfDto: UpdateBookshelfDto,
     @GetUser('id') userId: string,
-  ): Promise<Bookshelf> {
+  ) {
     return this.usersService.update(BookshelfId, updateBookshelfDto, userId);
   }
 

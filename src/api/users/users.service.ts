@@ -4,8 +4,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Bookshelf, Forkedshelf } from '@prisma/client';
+import { Forkedshelf } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Bookshelf } from '../bookshelves/entities/bookshelf.entity';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
@@ -70,6 +71,8 @@ export class UsersService {
     createBookshelfDto: CreateBookshelfDto,
     userId: string,
   ) {
+    const uniqueBooks = [...new Set(createBookshelfDto.books)];
+
     return await this.prisma.bookshelf.create({
       data: {
         name: createBookshelfDto.name,
@@ -77,14 +80,19 @@ export class UsersService {
         visible: createBookshelfDto.visible,
         owner: { connect: { id: userId } },
         books: {
-          create: createBookshelfDto.books.map((book) => ({
+          create: uniqueBooks.map((book) => ({
             book: { connect: { id: book } },
           })),
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        createdAt: true,
         books: {
-          include: {
+          select: {
             book: true,
           },
         },
