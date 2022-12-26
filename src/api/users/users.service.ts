@@ -4,8 +4,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Bookshelf, Forkedshelf } from '@prisma/client';
+import { Forkedshelf } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Bookshelf } from '../bookshelves/entities/bookshelf.entity';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
@@ -70,6 +71,8 @@ export class UsersService {
     createBookshelfDto: CreateBookshelfDto,
     userId: string,
   ) {
+    const uniqueBooks = [...new Set(createBookshelfDto.books)];
+
     return await this.prisma.bookshelf.create({
       data: {
         name: createBookshelfDto.name,
@@ -77,14 +80,19 @@ export class UsersService {
         visible: createBookshelfDto.visible,
         owner: { connect: { id: userId } },
         books: {
-          create: createBookshelfDto.books.map((book) => ({
+          create: uniqueBooks.map((book) => ({
             book: { connect: { id: book } },
           })),
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        createdAt: true,
         books: {
-          include: {
+          select: {
             book: true,
           },
         },
@@ -138,7 +146,7 @@ export class UsersService {
     return bookshelf;
   }
 
-  async update(
+  async updateBookshelf(
     bookshelfId: string,
     updateBookshelfDto: UpdateBookshelfDto,
     userId: string,
@@ -168,9 +176,14 @@ export class UsersService {
           })),
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        visible: true,
+        createdAt: true,
         books: {
-          include: {
+          select: {
             book: true,
           },
         },
@@ -180,7 +193,10 @@ export class UsersService {
     return updatedBookshelf;
   }
 
-  async remove(bookshelfId: string, userId: string): Promise<string> {
+  async deleteBookshelf(
+    bookshelfId: string,
+    userId: string,
+  ): Promise<{ id: string }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -203,7 +219,7 @@ export class UsersService {
       },
     });
 
-    return bookshelfId;
+    return { id: bookshelfId };
   }
 
   async forkBookshelf(bookshelfId: string, userId: string) {

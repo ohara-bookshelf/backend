@@ -53,7 +53,7 @@ enum Visibility {
 model BookshelfBook {
   bookshelfId String
   bookId      String
-  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id], onDelete: Cascade)
   book        Book      @relation(fields: [bookId], references: [id])
   assignedAt  DateTime  @default(now())
 
@@ -64,6 +64,6 @@ model Forkedshelf {
   id          String    @id @default(uuid())
   readerId    String
   bookshelfId String
-  reader      User      @relation(fields: [readerId], references: [id])
-  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id])
+  reader      User      @relation(fields: [readerId], references: [id], onDelete: Cascade)
+  bookshelf   Bookshelf @relation(fields: [bookshelfId], references: [id], onDelete: Cascade)
 }
