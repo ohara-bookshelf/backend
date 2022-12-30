@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -158,23 +159,41 @@ export class UsersService {
       },
     });
 
+    if (!bookshelf) {
+      throw new NotFoundException('Bookshelf not found');
+    }
+
     if (bookshelf.userId !== userId) {
       throw new UnauthorizedException(
         'You are not allowed to edit this bookshelf',
       );
     }
 
-    // TODO : update bookshelf require to delete all books and recreate them
+    if (updateBookshelfDto.books && updateBookshelfDto.books.length) {
+      for (const bookId of updateBookshelfDto.books) {
+        await this.prisma.bookshelfBook.upsert({
+          where: {
+            bookshelfId_bookId: {
+              bookId: bookId,
+              bookshelfId: bookshelfId,
+            },
+          },
+          create: {
+            book: { connect: { id: bookId } },
+            bookshelf: { connect: { id: bookshelfId } },
+          },
+          update: {},
+        });
+      }
+    }
+
     const updatedBookshelf = await this.prisma.bookshelf.update({
       where: { id: bookshelfId },
 
       data: {
-        ...updateBookshelfDto,
-        books: {
-          create: updateBookshelfDto.books?.map((book) => ({
-            book: { connect: { id: book } },
-          })),
-        },
+        name: updateBookshelfDto.name,
+        description: updateBookshelfDto.description,
+        visible: updateBookshelfDto.visible,
       },
       select: {
         id: true,
