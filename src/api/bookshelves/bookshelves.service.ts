@@ -21,6 +21,7 @@ export class BookshelvesService {
         name: true,
         description: true,
         visible: true,
+        createdAt: true,
         owner: {
           select: {
             id: true,
