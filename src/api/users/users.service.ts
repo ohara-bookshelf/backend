@@ -1,7 +1,6 @@
 import {
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -204,6 +203,58 @@ export class UsersService {
         books: {
           select: {
             book: true,
+          },
+        },
+      },
+    });
+
+    return updatedBookshelf;
+  }
+
+  async deleteBookshelfBooks(
+    bookshelfId: string,
+    bookIds: string,
+    userId: string,
+  ) {
+    const bookshelf = await this.prisma.bookshelf.findUnique({
+      where: {
+        id: bookshelfId,
+      },
+    });
+
+    if (!bookshelf) {
+      throw new NotFoundException('Bookshelf not found');
+    }
+
+    if (bookshelf.userId !== userId) {
+      throw new UnauthorizedException(
+        'You are not allowed to delete this bookshelf',
+      );
+    }
+
+    await this.prisma.bookshelfBook.delete({
+      where: {
+        bookshelfId_bookId: {
+          bookId: bookIds,
+          bookshelfId: bookshelfId,
+        },
+      },
+    });
+
+    const updatedBookshelf = await this.prisma.bookshelf.findFirst({
+      where: {
+        AND: [{ id: bookshelfId }, { userId: userId }],
+      },
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
           },
         },
       },
