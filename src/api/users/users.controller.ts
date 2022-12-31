@@ -87,7 +87,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Post('/bookshelves/:bookshelfId/fork')
   forkBookshelf(
-    @Param('id') bookshelfId: string,
+    @Param('bookshelfId') bookshelfId: string,
     @GetUser('id') userId: string,
   ) {
     return this.usersService.forkBookshelf(bookshelfId, userId);
