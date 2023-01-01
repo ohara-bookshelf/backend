@@ -6,6 +6,7 @@
   - DATABASE_URL
   - SESSION_SECRET
   - JWT_SECRET
+  - ML_API_URL
 
 ## Installation
 
