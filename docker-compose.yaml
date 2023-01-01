@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   dev-db:
-    image: 430amdev/bookshelf-db:test
+    image: 430amdev/bookshelf-db:latest
     container_name: dev-db
     restart: always
     environment:
