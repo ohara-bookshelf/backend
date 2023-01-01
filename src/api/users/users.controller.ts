@@ -46,6 +46,16 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Delete('/bookshelves/:bookshelfId/books')
+  deleteBooksInBookshelf(
+    @Param('bookshelfId') bookshelfId: string,
+    @Body('bookIds') bookIds: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.usersService.deleteBookshelfBooks(bookshelfId, bookIds, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/bookshelves/:id')
   findOne(@Param('id') bookshelfId: string, @GetUser('id') userId: string) {
     return this.usersService.findOneBookshelf(bookshelfId, userId);
@@ -77,7 +87,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Post('/bookshelves/:bookshelfId/fork')
   forkBookshelf(
-    @Param('id') bookshelfId: string,
+    @Param('bookshelfId') bookshelfId: string,
     @GetUser('id') userId: string,
   ) {
     return this.usersService.forkBookshelf(bookshelfId, userId);

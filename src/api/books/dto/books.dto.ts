@@ -5,3 +5,8 @@ export type BookQueryDto = {
   startYear?: number;
   endYear?: number;
 };
+
+export type RecommendedBookQueryDto = {
+  title: string;
+  count: number;
+};

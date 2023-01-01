@@ -23,7 +23,11 @@ export class UsersService {
       include: {
         bookshelves: {
           include: {
-            books: true,
+            books: {
+              include: {
+                book: true,
+              },
+            },
             _count: {
               select: {
                 userForks: true,
@@ -36,7 +40,11 @@ export class UsersService {
           include: {
             bookshelf: {
               include: {
-                books: true,
+                books: {
+                  include: {
+                    book: true,
+                  },
+                },
                 owner: {
                   select: {
                     id: true,
@@ -158,23 +166,41 @@ export class UsersService {
       },
     });
 
+    if (!bookshelf) {
+      throw new NotFoundException('Bookshelf not found');
+    }
+
     if (bookshelf.userId !== userId) {
       throw new UnauthorizedException(
         'You are not allowed to edit this bookshelf',
       );
     }
 
-    // TODO : update bookshelf require to delete all books and recreate them
+    if (updateBookshelfDto.books && updateBookshelfDto.books.length) {
+      for (const bookId of updateBookshelfDto.books) {
+        await this.prisma.bookshelfBook.upsert({
+          where: {
+            bookshelfId_bookId: {
+              bookId: bookId,
+              bookshelfId: bookshelfId,
+            },
+          },
+          create: {
+            book: { connect: { id: bookId } },
+            bookshelf: { connect: { id: bookshelfId } },
+          },
+          update: {},
+        });
+      }
+    }
+
     const updatedBookshelf = await this.prisma.bookshelf.update({
       where: { id: bookshelfId },
 
       data: {
-        ...updateBookshelfDto,
-        books: {
-          create: updateBookshelfDto.books?.map((book) => ({
-            book: { connect: { id: book } },
-          })),
-        },
+        name: updateBookshelfDto.name,
+        description: updateBookshelfDto.description,
+        visible: updateBookshelfDto.visible,
       },
       select: {
         id: true,
@@ -185,6 +211,58 @@ export class UsersService {
         books: {
           select: {
             book: true,
+          },
+        },
+      },
+    });
+
+    return updatedBookshelf;
+  }
+
+  async deleteBookshelfBooks(
+    bookshelfId: string,
+    bookIds: string,
+    userId: string,
+  ) {
+    const bookshelf = await this.prisma.bookshelf.findUnique({
+      where: {
+        id: bookshelfId,
+      },
+    });
+
+    if (!bookshelf) {
+      throw new NotFoundException('Bookshelf not found');
+    }
+
+    if (bookshelf.userId !== userId) {
+      throw new UnauthorizedException(
+        'You are not allowed to delete this bookshelf',
+      );
+    }
+
+    await this.prisma.bookshelfBook.delete({
+      where: {
+        bookshelfId_bookId: {
+          bookId: bookIds,
+          bookshelfId: bookshelfId,
+        },
+      },
+    });
+
+    const updatedBookshelf = await this.prisma.bookshelf.findFirst({
+      where: {
+        AND: [{ id: bookshelfId }, { userId: userId }],
+      },
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
           },
         },
       },
@@ -212,6 +290,12 @@ export class UsersService {
         'You are not allowed to delete this bookshelf',
       );
     }
+
+    await this.prisma.forkedshelf.deleteMany({
+      where: {
+        bookshelfId: bookshelfId,
+      },
+    });
 
     await this.prisma.bookshelf.delete({
       where: {
@@ -255,29 +339,40 @@ export class UsersService {
 
     // * Check if bookshelf is already forked
     if (isForked) {
-      throw new UnauthorizedException('This bookshelf is already forked');
+      throw new ForbiddenException('This bookshelf is already forked');
     }
 
     // * Create new bookshelf
     const newBookshelf = await this.prisma.forkedshelf.create({
       data: {
-        bookshelf: { connect: { id: bookshelfId } },
-        reader: { connect: { id: userId } },
+        bookshelf: {
+          connect: {
+            id: bookshelfId,
+          },
+        },
+        reader: {
+          connect: {
+            id: userId,
+          },
+        },
       },
       select: {
         id: true,
-
+        bookshelfId: true,
         bookshelf: {
           select: {
             id: true,
             name: true,
             description: true,
             visible: true,
+            createdAt: true,
+
             books: {
               select: {
                 book: true,
               },
             },
+            owner: true,
           },
         },
       },
@@ -313,7 +408,13 @@ export class UsersService {
   ): Promise<Forkedshelf> {
     const forkshelf = await this.prisma.forkedshelf.findFirst({
       where: {
-        AND: [{ id: forkedshelfId, bookshelf: { visible: 'PUBLIC' } }],
+        AND: [
+          {
+            id: forkedshelfId,
+            bookshelf: { visible: 'PUBLIC' },
+            readerId: userId,
+          },
+        ],
       },
       include: {
         bookshelf: {
@@ -323,7 +424,44 @@ export class UsersService {
                 book: true,
               },
             },
-            owner: true,
+            owner: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profileImgUrl: true,
+                _count: {
+                  select: {
+                    bookshelves: true,
+                    forkedshelves: true,
+                  },
+                },
+              },
+            },
+            userForks: {
+              select: {
+                reader: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImgUrl: true,
+                    _count: {
+                      select: {
+                        bookshelves: true,
+                        forkedshelves: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            _count: {
+              select: {
+                userForks: true,
+                books: true,
+              },
+            },
           },
         },
         reader: true,
