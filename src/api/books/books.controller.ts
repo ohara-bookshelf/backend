@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { Book } from '@prisma/client';
 import { BooksService } from './books.service';
-import { BookQueryDto } from './dto/books.dto';
+import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 
 @Controller('books')
 export class BooksController {
@@ -10,6 +10,11 @@ export class BooksController {
   @Get()
   findAll(@Query() query: BookQueryDto): Promise<Book[]> {
     return this.booksService.findAll(query);
+  }
+
+  @Get('recommended')
+  getRecommendedBooks(@Query() query: RecommendedBookQueryDto) {
+    return this.booksService.getRecommendedBooks(query);
   }
 
   @Get(':id')
