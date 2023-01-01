@@ -37,6 +37,9 @@ export class UsersService {
           },
         },
         forkedshelves: {
+          where: {
+            bookshelf: { visible: 'PUBLIC' },
+          },
           include: {
             bookshelf: {
               include: {
