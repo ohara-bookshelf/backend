@@ -23,7 +23,11 @@ export class UsersService {
       include: {
         bookshelves: {
           include: {
-            books: true,
+            books: {
+              include: {
+                book: true,
+              },
+            },
             _count: {
               select: {
                 userForks: true,
@@ -36,7 +40,11 @@ export class UsersService {
           include: {
             bookshelf: {
               include: {
-                books: true,
+                books: {
+                  include: {
+                    book: true,
+                  },
+                },
                 owner: {
                   select: {
                     id: true,
@@ -282,6 +290,12 @@ export class UsersService {
         'You are not allowed to delete this bookshelf',
       );
     }
+
+    await this.prisma.forkedshelf.deleteMany({
+      where: {
+        bookshelfId: bookshelfId,
+      },
+    });
 
     await this.prisma.bookshelf.delete({
       where: {

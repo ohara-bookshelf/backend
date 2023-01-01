@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 
@@ -41,9 +41,7 @@ export class BooksService {
 
   async getRecommendedBooks({ title, count = 20 }: RecommendedBookQueryDto) {
     let isbnList: string[] = [];
-    // ! Deadline for this project is coming soon, so I need to finish this project as soon as possible.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+
     const { data } = await firstValueFrom(
       this.httpService
         .post(`${process.env.ML_API_URL}/recommend`, {
@@ -51,7 +49,7 @@ export class BooksService {
           number: { count: count },
         })
         .pipe(
-          catchError((error) => {
+          catchError(() => {
             throw 'An error happened!';
           }),
         ),

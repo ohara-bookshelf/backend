@@ -1,6 +1,7 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 
 import { BookshelvesService } from './bookshelves.service';
+import { RecommendedBookshelfQueryDto } from './dto/bookshelves.dto';
 
 @Controller('bookshelves')
 export class BookshelvesController {
@@ -14,6 +15,11 @@ export class BookshelvesController {
   @Get('popular')
   findPopular() {
     return this.bookshelvesService.findPopular();
+  }
+
+  @Get('recommended')
+  findRecommended(@Query() query: RecommendedBookshelfQueryDto) {
+    return this.bookshelvesService.findRecommended(query);
   }
 
   @Get(':id')
