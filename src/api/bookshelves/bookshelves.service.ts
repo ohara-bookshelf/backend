@@ -90,7 +90,7 @@ export class BookshelvesService {
       this.httpService
         .post(`${process.env.ML_API_URL}/recommend`, {
           title: { text: title },
-          number: { count: count },
+          number: { count: +count },
         })
         .pipe(
           catchError(() => {
