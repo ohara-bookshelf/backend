@@ -16,6 +16,7 @@ import { GetUser } from './decorator/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
 import { Bookshelf, Forkedshelf } from '@prisma/client';
+import { UserDetail } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -23,7 +24,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getProfile(@GetUser('id') userId: string) {
+  getProfile(@GetUser('id') userId: string): Promise<UserDetail> {
     return this.usersService.getProfile(userId);
   }
 

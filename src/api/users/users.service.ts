@@ -10,13 +10,14 @@ import { Bookshelf } from '../bookshelves/entities/bookshelf.entity';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
+import { UserDetail } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
+  async getProfile(userId: string): Promise<UserDetail> {
+    const data = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -69,13 +70,27 @@ export class UsersService {
       },
     });
 
-    const totalFork = await this.prisma.forkedshelf.count({
+    const totalForks = await this.prisma.forkedshelf.count({
       where: {
         bookshelf: { AND: [{ visible: 'PUBLIC', owner: { id: userId } }] },
       },
     });
 
-    return { ...user, totalFork: totalFork };
+    const bookshelves = data.bookshelves.reduce(
+      (group, bookshelf) => {
+        const { visible } = bookshelf;
+
+        group[visible.toLowerCase()] = group[visible.toLowerCase()] ?? [];
+        group[visible.toLowerCase()].push(bookshelf);
+        return group;
+      },
+      {
+        public: [],
+        private: [],
+      },
+    );
+
+    return { ...data, totalForks, bookshelves };
   }
 
   async createBookshelf(
