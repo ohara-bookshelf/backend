@@ -47,13 +47,16 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/bookshelves/:bookshelfId/books')
+  @Delete('/bookshelves/:bookshelfId/books/:bookId')
   deleteBooksInBookshelf(
     @Param('bookshelfId') bookshelfId: string,
-    @Body('bookIds') bookIds: string,
+    @Param('bookId') bookId: string,
     @GetUser('id') userId: string,
-  ) {
-    return this.usersService.deleteBookshelfBooks(bookshelfId, bookIds, userId);
+  ): Promise<{
+    bookshelfId: string;
+    bookId: string;
+  }> {
+    return this.usersService.deleteBookshelfBooks(bookshelfId, bookId, userId);
   }
 
   @UseGuards(JwtAuthGuard)

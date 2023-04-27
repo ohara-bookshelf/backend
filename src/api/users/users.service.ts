@@ -4,9 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Forkedshelf } from '@prisma/client';
+import { Bookshelf, Forkedshelf } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Bookshelf } from '../bookshelves/entities/bookshelf.entity';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
@@ -211,26 +210,26 @@ export class UsersService {
         });
       }
     }
-
     const updatedBookshelf = await this.prisma.bookshelf.update({
       where: { id: bookshelfId },
-
       data: {
         name: updateBookshelfDto.name,
         description: updateBookshelfDto.description,
         visible: updateBookshelfDto.visible,
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        visible: true,
-        createdAt: true,
+      include: {
         books: {
-          select: {
+          include: {
             book: true,
           },
         },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
+        },
+        owner: true,
       },
     });
 
@@ -239,9 +238,12 @@ export class UsersService {
 
   async deleteBookshelfBooks(
     bookshelfId: string,
-    bookIds: string,
+    bookId: string,
     userId: string,
-  ) {
+  ): Promise<{
+    bookshelfId: string;
+    bookId: string;
+  }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -261,32 +263,16 @@ export class UsersService {
     await this.prisma.bookshelfBook.delete({
       where: {
         bookshelfId_bookId: {
-          bookId: bookIds,
-          bookshelfId: bookshelfId,
+          bookId,
+          bookshelfId,
         },
       },
     });
 
-    const updatedBookshelf = await this.prisma.bookshelf.findFirst({
-      where: {
-        AND: [{ id: bookshelfId }, { userId: userId }],
-      },
-      include: {
-        books: {
-          include: {
-            book: true,
-          },
-        },
-        _count: {
-          select: {
-            userForks: true,
-            books: true,
-          },
-        },
-      },
-    });
-
-    return updatedBookshelf;
+    return {
+      bookshelfId,
+      bookId,
+    };
   }
 
   async deleteBookshelf(

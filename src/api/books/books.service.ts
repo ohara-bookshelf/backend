@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
+import { Book } from '@prisma/client';
 
 @Injectable()
 export class BooksService {
@@ -12,24 +13,31 @@ export class BooksService {
     private readonly httpService: HttpService,
   ) {}
 
-  async findAll(query: BookQueryDto) {
+  async findAll(query: BookQueryDto): Promise<Book[]> {
+    const startYear = query.startYear !== undefined ? +query.startYear : 0;
+    const endYear = query.endYear !== undefined ? +query.endYear : 9999;
+    const take = query.take !== undefined ? +query.take : 10;
+
     return await this.prisma.book.findMany({
       where: {
         title: {
           contains: query.title,
+          mode: 'insensitive',
         },
         author: {
           contains: query.author,
+          mode: 'insensitive',
         },
         publisher: {
           contains: query.publisher,
+          mode: 'insensitive',
         },
         year_of_publication: {
-          lte: query.endYear !== undefined ? +query.endYear : 9999,
-          gte: query.startYear !== undefined ? +query.startYear : 0,
+          lte: endYear,
+          gte: startYear,
         },
       },
-      take: 10,
+      take,
     });
   }
 
