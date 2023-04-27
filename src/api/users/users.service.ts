@@ -278,7 +278,7 @@ export class UsersService {
   async deleteBookshelf(
     bookshelfId: string,
     userId: string,
-  ): Promise<{ id: string }> {
+  ): Promise<{ bookshelfId: string }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -307,7 +307,7 @@ export class UsersService {
       },
     });
 
-    return { id: bookshelfId };
+    return { bookshelfId };
   }
 
   async forkBookshelf(bookshelfId: string, userId: string) {

@@ -84,7 +84,7 @@ export class UsersController {
   deleteBookshelf(
     @Param('id') bookshelfId: string,
     @GetUser('id') userId: string,
-  ) {
+  ): Promise<{ bookshelfId: string }> {
     return this.usersService.deleteBookshelf(bookshelfId, userId);
   }
 
