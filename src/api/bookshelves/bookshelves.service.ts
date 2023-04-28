@@ -2,7 +2,11 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RecommendedBookshelfQueryDto } from './dto/bookshelves.dto';
+import {
+  BookshelfQueryDto,
+  RecommendedBookshelfQueryDto,
+} from './dto/bookshelves.dto';
+import { parseBookshelfQueryString } from './utils/queryParser';
 
 @Injectable()
 export class BookshelvesService {
@@ -11,73 +15,27 @@ export class BookshelvesService {
     private readonly httpService: HttpService,
   ) {}
 
-  async findAll() {
+  async findAll(queryString: BookshelfQueryDto) {
+    const { take, include } = parseBookshelfQueryString(queryString);
+
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: { visible: 'PUBLIC' },
       orderBy: { createdAt: 'desc' },
-      take: 101,
-      select: {
-        _count: {
-          select: {
-            userForks: true,
-            books: true,
-          },
-        },
-        id: true,
-        name: true,
-        description: true,
-        visible: true,
-        createdAt: true,
-        owner: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImgUrl: true,
-          },
-        },
-        books: {
-          select: {
-            book: true,
-          },
-        },
-      },
+      take,
+      include,
     });
 
     return bookshelves;
   }
 
-  async findPopular() {
+  async findPopular(queryString: BookshelfQueryDto) {
+    const { take, include } = parseBookshelfQueryString(queryString);
+
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: { visible: 'PUBLIC' },
       orderBy: { userForks: { _count: 'desc' } },
-      take: 100,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        visible: true,
-        createdAt: true,
-        owner: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImgUrl: true,
-          },
-        },
-        books: {
-          select: {
-            book: true,
-          },
-        },
-        _count: {
-          select: {
-            userForks: true,
-            books: true,
-          },
-        },
-      },
+      take,
+      include,
     });
 
     return bookshelves;
