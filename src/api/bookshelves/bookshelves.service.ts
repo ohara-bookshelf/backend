@@ -42,11 +42,9 @@ export class BookshelvesService {
   }
 
   async findRecommended({ title, count }: RecommendedBookshelfQueryDto) {
-    let isbnList: string[] = [];
-
     const { data } = await firstValueFrom(
       this.httpService
-        .post(`${process.env.ML_API_URL}/recommend`, {
+        .post<{ books: string[] }>(`${process.env.ML_API_URL}/recommend`, {
           title: { text: title },
           number: { count: +count },
         })
@@ -57,8 +55,6 @@ export class BookshelvesService {
         ),
     );
 
-    isbnList = data.books;
-
     return this.prisma.bookshelf.findMany({
       where: {
         visible: 'PUBLIC',
@@ -66,7 +62,7 @@ export class BookshelvesService {
           some: {
             book: {
               isbn: {
-                in: isbnList,
+                in: data.books,
               },
             },
           },
@@ -74,25 +70,8 @@ export class BookshelvesService {
       },
       orderBy: { createdAt: 'desc' },
       take: +count,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        visible: true,
-        createdAt: true,
-        owner: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImgUrl: true,
-          },
-        },
-        books: {
-          select: {
-            book: true,
-          },
-        },
+      include: {
+        owner: true,
         _count: {
           select: {
             userForks: true,

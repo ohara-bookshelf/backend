@@ -1,11 +1,12 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class RecommendedBookshelfQueryDto {
-  @IsNumber()
+  @IsString()
   title: string;
 
   @IsOptional()
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   count?: number;
 }
