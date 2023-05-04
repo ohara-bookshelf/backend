@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 
 import { BookshelvesService } from './bookshelves.service';
 import {
@@ -28,5 +28,12 @@ export class BookshelvesController {
   @Get(':id')
   findOne(@Param('id') bookshelfId: string) {
     return this.bookshelvesService.findOne(bookshelfId);
+  }
+
+  @Post('by-expression')
+  getBooksByExpression(
+    @Body() expressionDto: { imageString64: string; take: number },
+  ) {
+    return this.bookshelvesService.getBookshelvesByExpression(expressionDto);
   }
 }

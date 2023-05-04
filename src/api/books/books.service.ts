@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -73,5 +73,38 @@ export class BooksService {
         },
       },
     });
+  }
+
+  async getBooksByExpression(expressionDto: {
+    imageString64: string;
+    take: number;
+  }): Promise<{ books: Book[]; expression: string }> {
+    const { imageString64, take = 10 } = expressionDto;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
+          image: imageString64,
+        })
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException('Error when detecting expression');
+          }),
+        ),
+    );
+
+    const books = await this.prisma.book.findMany({
+      where: {
+        title: {
+          contains: data,
+          mode: 'insensitive',
+        },
+      },
+      take: +take,
+    });
+
+    return {
+      books,
+      expression: data,
+    };
   }
 }

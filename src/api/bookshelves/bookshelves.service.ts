@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -7,6 +7,7 @@ import {
   RecommendedBookshelfQueryDto,
 } from './dto/bookshelves.dto';
 import { parseBookshelfQueryString } from './utils/queryParser';
+import { Bookshelf } from '@prisma/client';
 
 @Injectable()
 export class BookshelvesService {
@@ -100,5 +101,38 @@ export class BookshelvesService {
         },
       },
     });
+  }
+
+  async getBookshelvesByExpression(expressionDto: {
+    imageString64: string;
+    take: number;
+  }): Promise<{ bookshelves: Bookshelf[]; expression: string }> {
+    const { imageString64, take = 10 } = expressionDto;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
+          image: imageString64,
+        })
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException('Error when detecting expression');
+          }),
+        ),
+    );
+
+    const bookshelves = await this.prisma.bookshelf.findMany({
+      where: {
+        name: {
+          contains: data,
+          mode: 'insensitive',
+        },
+      },
+      take: +take,
+    });
+
+    return {
+      bookshelves,
+      expression: data,
+    };
   }
 }
