@@ -331,7 +331,9 @@ export class UsersService {
     return { bookshelfId };
   }
 
-  async forkBookshelf(bookshelfId: string, userId: string) {
+  async forkBookshelf(body: { bookshelfId: string }, userId: string) {
+    const { bookshelfId } = body;
+
     const bookshelf = await this.prisma.bookshelf.findFirst({
       where: {
         AND: [{ id: bookshelfId }, { visible: 'PUBLIC' }],
@@ -516,7 +518,6 @@ export class UsersService {
         id: forkedshelfId,
       },
     });
-
     // * Check if forkshelf exist
     if (!forkshelf) {
       throw new NotFoundException('Forkshelf not found');
