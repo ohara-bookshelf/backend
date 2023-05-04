@@ -95,6 +95,7 @@ export class BookshelvesService {
         _count: {
           select: {
             userForks: true,
+            books: true,
           },
         },
       },

@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Bookshelf, Forkedshelf } from '@prisma/client';
+import { Bookshelf, Forkedshelf, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
@@ -14,6 +14,27 @@ import { UserDetail } from './entities/user.entity';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getUser(userId: string): Promise<User> {
+    return await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        bookshelves: {
+          where: {
+            visible: 'PUBLIC',
+          },
+        },
+        _count: {
+          select: {
+            bookshelves: true,
+            forkedshelves: true,
+          },
+        },
+      },
+    });
+  }
 
   async getProfile(userId: string): Promise<UserDetail> {
     const data = await this.prisma.user.findUnique({
