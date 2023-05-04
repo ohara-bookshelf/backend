@@ -57,8 +57,7 @@ export class BooksService {
           number: { count: +count },
         })
         .pipe(
-          catchError((error) => {
-            console.log(error);
+          catchError(() => {
             throw 'An error happened!';
           }),
         ),
@@ -86,7 +85,7 @@ export class BooksService {
           image: imageString64,
         })
         .pipe(
-          catchError((error) => {
+          catchError(() => {
             throw new BadRequestException('Error when detecting expression');
           }),
         ),

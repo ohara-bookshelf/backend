@@ -114,7 +114,7 @@ export class BookshelvesService {
           image: imageString64,
         })
         .pipe(
-          catchError((error) => {
+          catchError(() => {
             throw new BadRequestException('Error when detecting expression');
           }),
         ),
