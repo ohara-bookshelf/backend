@@ -1,20 +1,23 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 
 import { BookshelvesService } from './bookshelves.service';
-import { RecommendedBookshelfQueryDto } from './dto/bookshelves.dto';
+import {
+  BookshelfQueryDto,
+  RecommendedBookshelfQueryDto,
+} from './dto/bookshelves.dto';
 
 @Controller('bookshelves')
 export class BookshelvesController {
   constructor(private readonly bookshelvesService: BookshelvesService) {}
 
   @Get()
-  findAll() {
-    return this.bookshelvesService.findAll();
+  findAll(@Query() query: BookshelfQueryDto) {
+    return this.bookshelvesService.findAll(query);
   }
 
   @Get('popular')
-  findPopular() {
-    return this.bookshelvesService.findPopular();
+  findPopular(@Query() query: BookshelfQueryDto) {
+    return this.bookshelvesService.findPopular(query);
   }
 
   @Get('recommended')
@@ -25,5 +28,12 @@ export class BookshelvesController {
   @Get(':id')
   findOne(@Param('id') bookshelfId: string) {
     return this.bookshelvesService.findOne(bookshelfId);
+  }
+
+  @Post('by-expression')
+  getBooksByExpression(
+    @Body() expressionDto: { imageString64: string; take: number },
+  ) {
+    return this.bookshelvesService.getBookshelvesByExpression(expressionDto);
   }
 }

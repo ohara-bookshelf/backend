@@ -4,19 +4,40 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Forkedshelf } from '@prisma/client';
+import { Bookshelf, Forkedshelf, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Bookshelf } from '../bookshelves/entities/bookshelf.entity';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
 import { UsersBookshelfQueryDto } from './dto/query.dto';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
+import { UserDetail } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
+  async getUser(userId: string): Promise<User> {
+    return await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        bookshelves: {
+          where: {
+            visible: 'PUBLIC',
+          },
+        },
+        _count: {
+          select: {
+            bookshelves: true,
+            forkedshelves: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getProfile(userId: string): Promise<UserDetail> {
+    const data = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -69,13 +90,27 @@ export class UsersService {
       },
     });
 
-    const totalFork = await this.prisma.forkedshelf.count({
+    const totalForks = await this.prisma.forkedshelf.count({
       where: {
         bookshelf: { AND: [{ visible: 'PUBLIC', owner: { id: userId } }] },
       },
     });
 
-    return { ...user, totalFork: totalFork };
+    const bookshelves = data.bookshelves.reduce(
+      (group, bookshelf) => {
+        const { visible } = bookshelf;
+
+        group[visible.toLowerCase()] = group[visible.toLowerCase()] ?? [];
+        group[visible.toLowerCase()].push(bookshelf);
+        return group;
+      },
+      {
+        public: [],
+        private: [],
+      },
+    );
+
+    return { ...data, totalForks, bookshelves };
   }
 
   async createBookshelf(
@@ -196,26 +231,26 @@ export class UsersService {
         });
       }
     }
-
     const updatedBookshelf = await this.prisma.bookshelf.update({
       where: { id: bookshelfId },
-
       data: {
         name: updateBookshelfDto.name,
         description: updateBookshelfDto.description,
         visible: updateBookshelfDto.visible,
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        visible: true,
-        createdAt: true,
+      include: {
         books: {
-          select: {
+          include: {
             book: true,
           },
         },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
+        },
+        owner: true,
       },
     });
 
@@ -224,9 +259,12 @@ export class UsersService {
 
   async deleteBookshelfBooks(
     bookshelfId: string,
-    bookIds: string,
+    bookId: string,
     userId: string,
-  ) {
+  ): Promise<{
+    bookshelfId: string;
+    bookId: string;
+  }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -246,38 +284,22 @@ export class UsersService {
     await this.prisma.bookshelfBook.delete({
       where: {
         bookshelfId_bookId: {
-          bookId: bookIds,
-          bookshelfId: bookshelfId,
+          bookId,
+          bookshelfId,
         },
       },
     });
 
-    const updatedBookshelf = await this.prisma.bookshelf.findFirst({
-      where: {
-        AND: [{ id: bookshelfId }, { userId: userId }],
-      },
-      include: {
-        books: {
-          include: {
-            book: true,
-          },
-        },
-        _count: {
-          select: {
-            userForks: true,
-            books: true,
-          },
-        },
-      },
-    });
-
-    return updatedBookshelf;
+    return {
+      bookshelfId,
+      bookId,
+    };
   }
 
   async deleteBookshelf(
     bookshelfId: string,
     userId: string,
-  ): Promise<{ id: string }> {
+  ): Promise<{ bookshelfId: string }> {
     const bookshelf = await this.prisma.bookshelf.findUnique({
       where: {
         id: bookshelfId,
@@ -306,7 +328,7 @@ export class UsersService {
       },
     });
 
-    return { id: bookshelfId };
+    return { bookshelfId };
   }
 
   async forkBookshelf(bookshelfId: string, userId: string) {

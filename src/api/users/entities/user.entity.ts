@@ -1,7 +1,10 @@
-export class User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profileImgUrl: string;
+import { Bookshelf, Forkedshelf, User } from '@prisma/client';
+
+export interface UserDetail extends User {
+  totalForks: number;
+  bookshelves: {
+    public: Bookshelf[];
+    private: Bookshelf[];
+  };
+  forkedshelves: Forkedshelf[];
 }
