@@ -15,6 +15,11 @@ export class BookshelfQueryDto {
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  page?: number = 1;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
   take?: number = 10;
 
   @IsOptional()

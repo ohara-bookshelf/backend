@@ -8,7 +8,9 @@ type BookshelfInclude = {
 };
 
 function parseBookshelfQueryString(queryString: BookshelfQueryDto) {
-  const { take = 100, books, owner, userForks, _count } = queryString;
+  const { page = 1, take = 100, books, owner, userForks, _count } = queryString;
+
+  const skip = (page - 1) * take;
 
   const include: BookshelfInclude = {
     owner: false,
@@ -45,6 +47,7 @@ function parseBookshelfQueryString(queryString: BookshelfQueryDto) {
   return {
     take,
     include,
+    skip,
   };
 }
 
