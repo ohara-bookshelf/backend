@@ -94,15 +94,6 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('bookshelves/:bookshelfId/fork')
-  forkBookshelf(
-    @Param('bookshelfId') bookshelfId: string,
-    @GetUser('id') userId: string,
-  ) {
-    return this.usersService.forkBookshelf(bookshelfId, userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('forkshelves')
   findUserForks(@GetUser('id') userId: string): Promise<Forkedshelf[]> {
     return this.usersService.findUserForks(userId);
@@ -115,6 +106,15 @@ export class UsersController {
     @GetUser('id') userId: string,
   ): Promise<Forkedshelf> {
     return this.usersService.getUserForkDetail(forkedshelfId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('forkshelves')
+  forkBookshelf(
+    @Body() body: { bookshelfId: string },
+    @GetUser('id') userId: string,
+  ) {
+    return this.usersService.forkBookshelf(body, userId);
   }
 
   @UseGuards(JwtAuthGuard)

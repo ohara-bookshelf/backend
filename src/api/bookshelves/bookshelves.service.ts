@@ -8,6 +8,7 @@ import {
 } from './dto/bookshelves.dto';
 import { parseBookshelfQueryString } from './utils/queryParser';
 import { Bookshelf } from '@prisma/client';
+import { Meta } from 'src/common/type';
 
 @Injectable()
 export class BookshelvesService {
@@ -16,17 +17,34 @@ export class BookshelvesService {
     private readonly httpService: HttpService,
   ) {}
 
-  async findAll(queryString: BookshelfQueryDto) {
-    const { take, include } = parseBookshelfQueryString(queryString);
+  async findAll(queryString: BookshelfQueryDto): Promise<{
+    data: Bookshelf[];
+    meta: Meta;
+  }> {
+    const { take, include, skip } = parseBookshelfQueryString(queryString);
 
-    const bookshelves = await this.prisma.bookshelf.findMany({
-      where: { visible: 'PUBLIC' },
-      orderBy: { createdAt: 'desc' },
-      take,
-      include,
-    });
+    const [bookshelves, total] = await Promise.all([
+      this.prisma.bookshelf.findMany({
+        where: { visible: 'PUBLIC' },
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+        include,
+      }),
+      this.prisma.bookshelf.count({ where: { visible: 'PUBLIC' } }),
+    ]);
 
-    return bookshelves;
+    const totalPages = Math.ceil(total / take);
+
+    return {
+      data: bookshelves,
+      meta: {
+        total,
+        currentPage: +queryString.page,
+        take,
+        totalPages,
+      },
+    };
   }
 
   async findPopular(queryString: BookshelfQueryDto) {

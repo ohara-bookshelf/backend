@@ -214,29 +214,36 @@ export class UsersService {
       );
     }
 
-    if (updateBookshelfDto.books && updateBookshelfDto.books.length) {
-      for (const bookId of updateBookshelfDto.books) {
-        await this.prisma.bookshelfBook.upsert({
-          where: {
-            bookshelfId_bookId: {
-              bookId: bookId,
-              bookshelfId: bookshelfId,
-            },
-          },
-          create: {
-            book: { connect: { id: bookId } },
-            bookshelf: { connect: { id: bookshelfId } },
-          },
-          update: {},
-        });
-      }
-    }
     const updatedBookshelf = await this.prisma.bookshelf.update({
       where: { id: bookshelfId },
       data: {
         name: updateBookshelfDto.name,
         description: updateBookshelfDto.description,
         visible: updateBookshelfDto.visible,
+        ...(updateBookshelfDto.books && updateBookshelfDto.books.length > 0
+          ? {
+              books: {
+                upsert: updateBookshelfDto.books.map((bookId) => ({
+                  where: {
+                    bookshelfId_bookId: {
+                      bookId: bookId,
+                      bookshelfId: bookshelfId,
+                    },
+                  },
+                  create: {
+                    book: { connect: { id: bookId } },
+                  },
+                  update: {},
+                })),
+                deleteMany: {
+                  bookshelfId: bookshelfId,
+                  bookId: {
+                    notIn: updateBookshelfDto.books,
+                  },
+                },
+              },
+            }
+          : {}),
       },
       include: {
         books: {
@@ -331,7 +338,9 @@ export class UsersService {
     return { bookshelfId };
   }
 
-  async forkBookshelf(bookshelfId: string, userId: string) {
+  async forkBookshelf(body: { bookshelfId: string }, userId: string) {
+    const { bookshelfId } = body;
+
     const bookshelf = await this.prisma.bookshelf.findFirst({
       where: {
         AND: [{ id: bookshelfId }, { visible: 'PUBLIC' }],
@@ -516,7 +525,6 @@ export class UsersService {
         id: forkedshelfId,
       },
     });
-
     // * Check if forkshelf exist
     if (!forkshelf) {
       throw new NotFoundException('Forkshelf not found');
