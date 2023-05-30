@@ -1,0 +1,38 @@
+version: '3.8'
+name: bitirme
+services:
+  expression:
+    image: oharabookshelf/expression
+    ports:
+      - 8002:80
+    volumes:
+      - ~/bitirme_volume/expression:/app/data
+
+  hybrid:
+    image: oharabookshelf/hybrid
+    ports:
+      - 8001:80
+    volumes:
+      - ~/bitirme_volume/hybrid:/app/data
+
+  emotion:
+    image: oharabookshelf/emotion
+    ports:
+      - 8003:80
+    volumes:
+      - ~/bitirme_volume/emotion:/app/data
+
+  db:
+    image: 430amdev/bookshelf-db:latest
+    container_name: dev-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_NAME: postgres
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+    ports:
+      - 5433:5432
+    volumes:
+      - ~/bitirme_volume/pgdata:/var/lib/postgresql/data
