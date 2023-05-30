@@ -29,6 +29,7 @@ model Book {
   image_url_l         String?
   description         String?
   genres              String[]
+  book_path           String
   Bookshelves         BookshelfBook[]
 }
 
