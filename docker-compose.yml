@@ -23,15 +23,10 @@ services:
       - ~/bitirme_volume/emotion:/app/data
 
   db:
-    image: 430amdev/bookshelf-db:latest
-    container_name: dev-db
+    image: oharabookshelf/db
     restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_NAME: postgres
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
+    env_file:
+      - .env
     ports:
       - 5433:5432
     volumes:
