@@ -60,16 +60,17 @@ export class BookshelvesService {
     return bookshelves;
   }
 
-  async findRecommended({ title, count }: RecommendedBookshelfQueryDto) {
+  async findRecommended({ isbn, count = 20 }: RecommendedBookshelfQueryDto) {
     const { data } = await firstValueFrom(
       this.httpService
-        .post<{ books: string[] }>(
-          `${process.env.ML_API_URL}/hybrid-recommendation`,
-          {
-            title: { text: title },
-            number: { count: +count },
+        .post(`${process.env.ML_API_URL}/hybrid-recommendation`, {
+          ISBN: {
+            text: isbn,
           },
-        )
+          NUMBER: {
+            count: count,
+          },
+        })
         .pipe(
           catchError(() => {
             throw 'An error happened!';
