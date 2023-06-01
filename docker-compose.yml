@@ -4,7 +4,7 @@ services:
   expression:
     image: oharabookshelf/expression
     ports:
-      - 8002:80
+      - 8002:5000
     volumes:
       - ~/bitirme_volume/expression:/app/data
 

@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
-import { Meta } from 'src/common/type';
+import { EmotionResponse, Meta } from 'src/common/type';
 
 @Injectable()
 export class BooksService {
@@ -64,24 +64,7 @@ export class BooksService {
     });
   }
 
-  async getRecommendedBooks({ title, count = 20 }: RecommendedBookQueryDto) {
-    let isbnList: string[] = [];
-
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post(`${process.env.ML_API_URL}/recommend`, {
-          title: { text: title },
-          number: { count: +count },
-        })
-        .pipe(
-          catchError(() => {
-            throw 'An error happened!';
-          }),
-        ),
-    );
-
-    isbnList = data.books;
-
+  findInIsbnList(isbnList: string[]) {
     return this.prisma.book.findMany({
       where: {
         isbn: {
@@ -91,12 +74,37 @@ export class BooksService {
     });
   }
 
+  async getRecommendedBooks({ isbn, count = 20 }: RecommendedBookQueryDto) {
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.ML_API_URL}/hybrid-recommendation`, {
+          ISBN: {
+            text: isbn,
+          },
+          NUMBER: {
+            count: count,
+          },
+        })
+        .pipe(
+          catchError(() => {
+            throw 'An error happened!';
+          }),
+        ),
+    );
+
+    if (!data || !data.books)
+      throw new BadRequestException('Error when getting recommended books');
+
+    return this.findInIsbnList(data.books);
+  }
+
   async getBooksByExpression(expressionDto: {
     imageString64: string;
     take: number;
   }): Promise<{ books: Book[]; expression: string }> {
     const { imageString64, take = 10 } = expressionDto;
-    const { data } = await firstValueFrom(
+
+    const { data }: EmotionResponse = await firstValueFrom(
       this.httpService
         .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
           image: imageString64,
@@ -108,11 +116,28 @@ export class BooksService {
         ),
     );
 
+    const { data: isbnList }: { data: { books: string[] } } =
+      await firstValueFrom(
+        this.httpService
+          .post(`${process.env.EMOTION_API_URL}/emotion-based-recommend`, {
+            emotion: {
+              text: data.emotion.toLocaleLowerCase(),
+            },
+            count: {
+              count: 10,
+            },
+          })
+          .pipe(
+            catchError(() => {
+              throw new BadRequestException('Error when detecting expression');
+            }),
+          ),
+      );
+
     const books = await this.prisma.book.findMany({
       where: {
-        title: {
-          contains: data,
-          mode: 'insensitive',
+        isbn: {
+          in: isbnList.books,
         },
       },
       take: +take,
@@ -120,7 +145,7 @@ export class BooksService {
 
     return {
       books,
-      expression: data,
+      expression: data.emotion,
     };
   }
 }

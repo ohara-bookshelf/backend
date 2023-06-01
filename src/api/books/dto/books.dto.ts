@@ -36,7 +36,7 @@ export class BookQueryDto {
 export class RecommendedBookQueryDto {
   @IsNotEmpty()
   @IsString()
-  title: string;
+  isbn: string;
 
   @IsNotEmpty()
   @Transform(({ value }) => Number(value))

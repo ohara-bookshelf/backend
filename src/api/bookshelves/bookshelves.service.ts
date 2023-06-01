@@ -8,7 +8,7 @@ import {
 } from './dto/bookshelves.dto';
 import { parseBookshelfQueryString } from './utils/queryParser';
 import { Bookshelf } from '@prisma/client';
-import { Meta } from 'src/common/type';
+import { EmotionResponse, Meta, RecommendedResponse } from 'src/common/type';
 
 @Injectable()
 export class BookshelvesService {
@@ -63,10 +63,13 @@ export class BookshelvesService {
   async findRecommended({ title, count }: RecommendedBookshelfQueryDto) {
     const { data } = await firstValueFrom(
       this.httpService
-        .post<{ books: string[] }>(`${process.env.ML_API_URL}/recommend`, {
-          title: { text: title },
-          number: { count: +count },
-        })
+        .post<{ books: string[] }>(
+          `${process.env.ML_API_URL}/hybrid-recommendation`,
+          {
+            title: { text: title },
+            number: { count: +count },
+          },
+        )
         .pipe(
           catchError(() => {
             throw 'An error happened!';
@@ -126,7 +129,8 @@ export class BookshelvesService {
     take: number;
   }): Promise<{ bookshelves: Bookshelf[]; expression: string }> {
     const { imageString64, take = 10 } = expressionDto;
-    const { data } = await firstValueFrom(
+
+    const { data }: EmotionResponse = await firstValueFrom(
       this.httpService
         .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
           image: imageString64,
@@ -138,11 +142,45 @@ export class BookshelvesService {
         ),
     );
 
+    const { data: isbnList }: RecommendedResponse = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.EMOTION_API_URL}/emotion-based-recommend`, {
+          emotion: {
+            text: data.emotion.toLocaleLowerCase(),
+          },
+          count: {
+            count: 10,
+          },
+        })
+        .pipe(
+          catchError(() => {
+            throw new BadRequestException('Error when detecting expression');
+          }),
+        ),
+    );
+
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: {
-        name: {
-          contains: data,
-          mode: 'insensitive',
+        books: {
+          some: {
+            book: {
+              isbn: { in: isbnList.books },
+            },
+          },
+        },
+      },
+      include: {
+        owner: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
         },
       },
       take: +take,
@@ -150,7 +188,7 @@ export class BookshelvesService {
 
     return {
       bookshelves,
-      expression: data,
+      expression: data.emotion,
     };
   }
 }

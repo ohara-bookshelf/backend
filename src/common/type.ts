@@ -4,3 +4,6 @@ export type Meta = {
   take: number;
   totalPages: number;
 };
+
+export type EmotionResponse = { data: { emotion: string } };
+export type RecommendedResponse = { data: { books: string[] } };
