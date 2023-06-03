@@ -22,7 +22,7 @@ export class BookshelvesController {
 
   @Get('recommended')
   findRecommended(@Query() query: RecommendedBookshelfQueryDto) {
-    return this.bookshelvesService.findRecommended(query);
+    return this.bookshelvesService.getRecommendedBookshelves(query);
   }
 
   @Get(':id')

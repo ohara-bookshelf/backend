@@ -2,10 +2,14 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { HybridRecommentationDto } from './dto/hybrid.dto';
 import { MLException } from 'src/exceptions/ml.exception';
 import { EmotionResponse, RecommendedResponse } from './types/ml.types';
-import { DetectExpressionDto, ExpressionBasedDto } from './dto/expression.dto';
+import {
+  DetectExpressionDto,
+  ExpressionBasedDto,
+  HybridRecommentationDto,
+} from './dto/ml.dto';
+import { Book, Bookshelf } from '@prisma/client';
 
 @Injectable()
 export class MlService {
@@ -14,11 +18,10 @@ export class MlService {
     private readonly httpService: HttpService,
   ) {}
 
-  async getHybridRecommendation(
-    hybridRecommentationDto: HybridRecommentationDto,
-  ): Promise<RecommendedResponse> {
-    const { isbn, count } = hybridRecommentationDto;
-
+  async getHybridBooks({
+    isbn,
+    count = 10,
+  }: HybridRecommentationDto): Promise<RecommendedResponse> {
     const { data } = await firstValueFrom(
       this.httpService
         .post(`${process.env.ML_API_URL}/hybrid-recommendation`, {
@@ -26,7 +29,7 @@ export class MlService {
             text: isbn,
           },
           NUMBER: {
-            count: count,
+            count,
           },
         })
         .pipe(
@@ -37,6 +40,60 @@ export class MlService {
     );
 
     return data;
+  }
+
+  async getHybridBookRecommendations({
+    isbn,
+    count = 10,
+  }: HybridRecommentationDto): Promise<Book[]> {
+    const { books: isbnList } = await this.getHybridBooks({ isbn, count });
+
+    const books = await this.prisma.book.findMany({
+      where: {
+        isbn: {
+          in: isbnList,
+        },
+      },
+      take: count,
+    });
+
+    return books;
+  }
+
+  async getHybridBookshelfRecommendations({
+    isbn,
+    count = 10,
+  }: HybridRecommentationDto): Promise<Bookshelf[]> {
+    const { books: isbnList } = await this.getHybridBooks({
+      isbn,
+      count,
+    });
+
+    return this.prisma.bookshelf.findMany({
+      where: {
+        visible: 'PUBLIC',
+        books: {
+          some: {
+            book: {
+              isbn: {
+                in: isbnList,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: count,
+      include: {
+        owner: true,
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
+        },
+      },
+    });
   }
 
   async detectExpression(
@@ -58,11 +115,10 @@ export class MlService {
     return data;
   }
 
-  async getExpressionBasedRecommendation(
-    expressionBasedDto: ExpressionBasedDto,
-  ): Promise<RecommendedResponse> {
-    const { expression } = expressionBasedDto;
-
+  async getExpressionBasedRecommendation({
+    expression,
+    count = 10,
+  }: ExpressionBasedDto): Promise<RecommendedResponse> {
     const { data } = await firstValueFrom(
       this.httpService
         .post(`${process.env.EMOTION_API_URL}/emotion-based-recommend`, {
@@ -70,7 +126,7 @@ export class MlService {
             text: expression,
           },
           count: {
-            count: 10,
+            count,
           },
         })
         .pipe(
