@@ -3,6 +3,7 @@ name: bitirme
 services:
   expression:
     image: oharabookshelf/expression
+    restart: always
     ports:
       - 8002:5000
     volumes:
@@ -10,6 +11,7 @@ services:
 
   hybrid:
     image: oharabookshelf/hybrid
+    restart: always
     ports:
       - 8001:80
     volumes:
@@ -17,6 +19,7 @@ services:
 
   emotion:
     image: oharabookshelf/emotion
+    restart: always
     ports:
       - 8003:80
     volumes:
@@ -24,6 +27,7 @@ services:
 
   reviews:
     image: oharabookshelf/reviews
+    restart: always
     ports:
       - 8004:80
     volumes:
