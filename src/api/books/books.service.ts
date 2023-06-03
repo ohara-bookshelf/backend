@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
@@ -74,6 +74,19 @@ export class BooksService {
   }
 
   async getRecommendedBooks({ isbn, count = 20 }: RecommendedBookQueryDto) {
+    if (!isbn) {
+      const books = await this.prisma.book.findMany();
+
+      if (!books.length)
+        throw new BadRequestException(
+          'No isbn provided or no books in the database',
+        );
+
+      const maxLength = books.length;
+      const randomIndex = Math.floor(Math.random() * maxLength);
+      isbn = books[randomIndex].isbn;
+    }
+
     const { books } = await this.mlService.getHybridBooks({ isbn, count });
 
     return await this.findInIsbnList(books, count);

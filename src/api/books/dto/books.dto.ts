@@ -34,11 +34,11 @@ export class BookQueryDto {
 }
 
 export class RecommendedBookQueryDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  isbn: string;
+  isbn?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Transform(({ value }) => Number(value))
-  count: number;
+  count?: number;
 }
