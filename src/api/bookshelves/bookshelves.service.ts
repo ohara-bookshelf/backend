@@ -7,7 +7,7 @@ import {
   RecommendedBookshelfQueryDto,
 } from './dto/bookshelves.dto';
 import { parseBookshelfQueryString } from './utils/queryParser';
-import { Bookshelf } from '@prisma/client';
+import { Book, Bookshelf } from '@prisma/client';
 import { EmotionResponse, Meta, RecommendedResponse } from 'src/common/type';
 
 @Injectable()
@@ -61,6 +61,34 @@ export class BookshelvesService {
   }
 
   async findRecommended({ isbn, count = 20 }: RecommendedBookshelfQueryDto) {
+    if (!isbn) {
+      const polularBookshelves = await this.findPopular({
+        take: count,
+        books: true,
+      }).then((bookshelves) => {
+        return bookshelves.flatMap((bookshelf) =>
+          bookshelf.books
+            .map((book: { book: Book }) => book.book.isbn)
+            .filter((isbn) => isbn !== undefined),
+        );
+      });
+
+      if (!polularBookshelves.length) {
+        const books = await this.prisma.book.findMany();
+
+        if (!books.length) throw new BadRequestException('No books found!');
+
+        const maxLength = books.length;
+        const randomIndex = Math.floor(Math.random() * maxLength);
+        isbn = books[randomIndex].isbn;
+        return;
+      }
+
+      const maxLength = polularBookshelves.length;
+      const randomIndex = Math.floor(Math.random() * maxLength);
+      isbn = polularBookshelves[randomIndex];
+    }
+
     const { data } = await firstValueFrom(
       this.httpService
         .post(`${process.env.ML_API_URL}/hybrid-recommendation`, {
