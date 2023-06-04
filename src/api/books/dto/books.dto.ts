@@ -42,3 +42,9 @@ export class RecommendedBookQueryDto {
   @Transform(({ value }) => Number(value))
   count?: number;
 }
+
+export class ReviewsBookQueryDto {
+  @IsNotEmpty({ message: 'isbn is required' })
+  @IsString()
+  bookPath: string;
+}

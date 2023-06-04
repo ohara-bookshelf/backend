@@ -3,13 +3,19 @@ import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MLException } from 'src/exceptions/ml.exception';
-import { EmotionResponse, RecommendedResponse } from './types/ml.types';
+import {
+  BookReviewResponse,
+  EmotionResponse,
+  RecommendedResponse,
+} from './types/ml.types';
 import {
   DetectExpressionDto,
   ExpressionBasedDto,
   HybridRecommentationDto,
 } from './dto/ml.dto';
 import { Book, Bookshelf } from '@prisma/client';
+import { AxiosResponse } from 'axios';
+import { BookReview } from 'src/common/type';
 
 @Injectable()
 export class MlService {
@@ -139,5 +145,33 @@ export class MlService {
     );
 
     return data;
+  }
+
+  async getBookReviews(book_path: string): Promise<BookReviewResponse> {
+    console.log(book_path);
+    const res: AxiosResponse<{
+      reviews: BookReview[];
+    }> = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.REVIEW_API_URL}/book-reviews`, {
+          text: book_path,
+        })
+        .pipe(
+          catchError(() => {
+            throw new MLException('Cannot get book reviews from goodreads api');
+          }),
+        ),
+    );
+
+    if (!res.data) {
+      throw new MLException('Cannot get book reviews from goodreads api');
+    }
+
+    const reviews = res.data.reviews.sort((a, b) => b.compound - a.compound);
+    const rating: number =
+      reviews.reduce((acc, cur) => acc + Number(cur.rating), 0) /
+      reviews.length;
+
+    return { reviews, rating };
   }
 }

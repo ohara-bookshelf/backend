@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
@@ -90,6 +94,16 @@ export class BooksService {
     const { books } = await this.mlService.getHybridBooks({ isbn, count });
 
     return await this.findInIsbnList(books, count);
+  }
+
+  async getBookReviews(bookId: string) {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+    });
+
+    if (!book) throw new NotFoundException('Book not found');
+
+    return await this.mlService.getBookReviews(book.book_path);
   }
 
   async getBooksByExpression(expressionDto: {

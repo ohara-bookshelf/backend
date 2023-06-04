@@ -23,6 +23,11 @@ export class BooksController {
     return this.booksService.findOne(id);
   }
 
+  @Get(':bookId/reviews')
+  getBookReviews(@Param('bookId') bookId: string) {
+    return this.booksService.getBookReviews(bookId);
+  }
+
   @Post('by-expression')
   getBooksByExpression(
     @Body() expressionDto: { imageString64: string; take: number },
