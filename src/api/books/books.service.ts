@@ -109,24 +109,24 @@ export class BooksService {
   async getBooksByExpression(expressionDto: {
     imageString64: string;
     take: number;
-  }): Promise<{ books: Book[]; expression: string }> {
+  }): Promise<{ books: Book[]; expression: string; genres: string[] }> {
     const { imageString64, take = 10 } = expressionDto;
 
     const { emotion } = await this.mlService.detectExpression({
       imageString64,
     });
 
-    const { books: isbnList } =
+    const { books: isbnList, genres } =
       await this.mlService.getExpressionBasedRecommendation({
         expression: emotion,
         count: take,
       });
 
     const books = await this.findInIsbnList(isbnList, take);
-
     return {
-      books,
       expression: emotion,
+      genres,
+      books,
     };
   }
 }

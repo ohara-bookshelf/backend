@@ -144,11 +144,32 @@ export class MlService {
         ),
     );
 
-    return data;
+    const { data: genres } = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.EMOTION_API_URL}/top_genres`, {
+          emotion: {
+            text: expression,
+          },
+          count: {
+            count,
+          },
+        })
+        .pipe(
+          catchError(() => {
+            throw new MLException(
+              'Error get recommendation based on expression',
+            );
+          }),
+        ),
+    );
+
+    return {
+      books: data.books,
+      genres: genres.genres,
+    };
   }
 
   async getBookReviews(book_path: string): Promise<BookReviewResponse> {
-    console.log(book_path);
     const res: AxiosResponse<{
       reviews: BookReview[];
     }> = await firstValueFrom(
