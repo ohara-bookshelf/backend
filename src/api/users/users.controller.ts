@@ -28,6 +28,11 @@ export class UsersController {
     return this.usersService.getProfile(userId);
   }
 
+  @Get('popular')
+  getPopularUser(): Promise<User[]> {
+    return this.usersService.getPopularUsers();
+  }
+
   @Get(':userId')
   getUser(@Param('userId') userId: string): Promise<User> {
     return this.usersService.getUser(userId);

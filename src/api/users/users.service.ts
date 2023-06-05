@@ -16,7 +16,7 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUser(userId: string): Promise<User> {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -24,6 +24,19 @@ export class UsersService {
         bookshelves: {
           where: {
             visible: 'PUBLIC',
+          },
+          include: {
+            books: {
+              include: {
+                book: true,
+              },
+            },
+            _count: {
+              select: {
+                userForks: true,
+                books: true,
+              },
+            },
           },
         },
         _count: {
@@ -34,6 +47,14 @@ export class UsersService {
         },
       },
     });
+
+    return {
+      ...user,
+      _count: {
+        ...user._count,
+        bookshelves: user.bookshelves.length,
+      },
+    } as User;
   }
 
   async getProfile(userId: string): Promise<UserDetail> {
@@ -111,6 +132,47 @@ export class UsersService {
     );
 
     return { ...data, totalForks, bookshelves };
+  }
+
+  async getPopularUsers(): Promise<User[]> {
+    const bookshelves = await this.prisma.bookshelf.findMany({
+      orderBy: {
+        userForks: {
+          _count: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: bookshelves.map((bookshelf) => bookshelf.userId),
+        },
+      },
+      include: {
+        bookshelves: {
+          where: {
+            visible: 'PUBLIC',
+          },
+        },
+        _count: {
+          select: {
+            bookshelves: true,
+            forkedshelves: true,
+          },
+        },
+      },
+    });
+
+    return users.map((user) => ({
+      ...user,
+      _count: {
+        ...user._count,
+        bookshelves: user.bookshelves.filter((b) => b.visible === 'PUBLIC')
+          .length,
+      },
+    }));
   }
 
   async createBookshelf(
