@@ -11,16 +11,24 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateBookshelfDto } from './dto/create-bookshelf.dto';
-import { UsersBookshelfQueryDto } from './dto/query.dto';
+import { UserQueryDto, UsersBookshelfQueryDto } from './dto/query.dto';
 import { GetUser } from './decorator/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards';
 import { UpdateBookshelfDto } from './dto/update-bookshelf.dto';
 import { Bookshelf, Forkedshelf, User } from '@prisma/client';
 import { UserDetail } from './entities/user.entity';
+import { Meta } from 'src/common/type';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  findUsers(
+    @Query() query: UserQueryDto,
+  ): Promise<{ data: User[]; meta: Meta }> {
+    return this.usersService.findUsers(query);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
