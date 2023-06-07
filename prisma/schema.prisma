@@ -13,8 +13,19 @@ model User {
   lastName      String
   sub           String        @unique
   profileImgUrl String
+  expression    Expression    @default(neutral)
   bookshelves   Bookshelf[]
   forkedshelves Forkedshelf[]
+}
+
+enum Expression {
+  neutral
+  happy
+  sad
+  angry
+  disgust
+  fear
+  surprised
 }
 
 model Book {
