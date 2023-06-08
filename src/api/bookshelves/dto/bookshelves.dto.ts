@@ -1,9 +1,17 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Validate,
+} from 'class-validator';
+import { isValidBase64Image } from 'src/common/lib/validator';
 
 export class RecommendedBookshelfQueryDto {
+  @IsOptional()
   @IsString()
-  title: string;
+  isbn?: string;
 
   @IsOptional()
   @Transform(({ value }) => Number(value))
@@ -44,11 +52,13 @@ export class BookshelfQueryDto {
 }
 
 export class RecommendedBookshelfDto extends BookshelfQueryDto {
-  @IsOptional()
-  @IsNumber()
-  count?: number = 10;
+  @IsString()
+  @Validate((value: string) => isValidBase64Image(value), {
+    message: 'Invalid base64 encoded image',
+  })
+  imageString64: string;
 
   @IsOptional()
   @IsNumber()
-  title?: string;
+  count?: number = 10;
 }

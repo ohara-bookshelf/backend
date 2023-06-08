@@ -1,0 +1,44 @@
+version: '3.8'
+name: bitirme
+services:
+  expression:
+    image: oharabookshelf/expression
+    restart: always
+    ports:
+      - 8002:5000
+    volumes:
+      - ~/bitirme_volume/expression:/app/data
+
+  hybrid:
+    image: oharabookshelf/hybrid
+    restart: always
+    ports:
+      - 8001:80
+    volumes:
+      - ~/bitirme_volume/hybrid:/app/data
+
+  emotion:
+    image: oharabookshelf/emotion
+    restart: always
+    ports:
+      - 8003:80
+    volumes:
+      - ~/bitirme_volume/emotion:/app/data
+
+  reviews:
+    image: oharabookshelf/reviews
+    restart: always
+    ports:
+      - 8004:80
+    volumes:
+      - ~/bitirme_volume/reviews:/app/data
+
+  db:
+    image: oharabookshelf/db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 5433:5432
+    volumes:
+      - ~/bitirme_volume/pgdata:/var/lib/postgresql/data

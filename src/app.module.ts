@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { BooksModule } from './api/books/books.module';
 import { UsersModule } from './api/users/users.module';
 import { BookshelvesModule } from './api/bookshelves/bookshelves.module';
+import { MlModule } from './api/ml/ml.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BookshelvesModule } from './api/bookshelves/bookshelves.module';
     BooksModule,
     UsersModule,
     BookshelvesModule,
+    MlModule,
   ],
   controllers: [AppController],
   providers: [AppService],

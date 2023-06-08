@@ -1,17 +1,19 @@
-import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { firstValueFrom } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
 import { Meta } from 'src/common/type';
+import { MlService } from '../ml/ml.service';
 
 @Injectable()
 export class BooksService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly httpService: HttpService,
+    private readonly mlService: MlService,
   ) {}
 
   async findAll(query: BookQueryDto): Promise<{ data: Book[]; meta: Meta }> {
@@ -64,63 +66,67 @@ export class BooksService {
     });
   }
 
-  async getRecommendedBooks({ title, count = 20 }: RecommendedBookQueryDto) {
-    let isbnList: string[] = [];
-
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post(`${process.env.ML_API_URL}/recommend`, {
-          title: { text: title },
-          number: { count: +count },
-        })
-        .pipe(
-          catchError(() => {
-            throw 'An error happened!';
-          }),
-        ),
-    );
-
-    isbnList = data.books;
-
-    return this.prisma.book.findMany({
+  async findInIsbnList(isbnList: string[], take = 10) {
+    return await this.prisma.book.findMany({
       where: {
         isbn: {
           in: isbnList,
         },
       },
+      take,
     });
+  }
+
+  async getRecommendedBooks({ isbn, count = 20 }: RecommendedBookQueryDto) {
+    if (!isbn) {
+      const books = await this.prisma.book.findMany();
+
+      if (!books.length)
+        throw new BadRequestException(
+          'No isbn provided or no books in the database',
+        );
+
+      const maxLength = books.length;
+      const randomIndex = Math.floor(Math.random() * maxLength);
+      isbn = books[randomIndex].isbn;
+    }
+
+    const { books } = await this.mlService.getHybridBooks({ isbn, count });
+
+    return await this.findInIsbnList(books, count);
+  }
+
+  async getBookReviews(bookId: string) {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+    });
+
+    if (!book) throw new NotFoundException('Book not found');
+
+    return await this.mlService.getBookReviews(book.book_path);
   }
 
   async getBooksByExpression(expressionDto: {
     imageString64: string;
     take: number;
-  }): Promise<{ books: Book[]; expression: string }> {
+  }): Promise<{ books: Book[]; expression: string; genres: string[] }> {
     const { imageString64, take = 10 } = expressionDto;
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
-          image: imageString64,
-        })
-        .pipe(
-          catchError(() => {
-            throw new BadRequestException('Error when detecting expression');
-          }),
-        ),
-    );
 
-    const books = await this.prisma.book.findMany({
-      where: {
-        title: {
-          contains: data,
-          mode: 'insensitive',
-        },
-      },
-      take: +take,
+    const { emotion } = await this.mlService.detectExpression({
+      imageString64,
     });
 
+    const { books: isbnList, genres } =
+      await this.mlService.getExpressionBasedRecommendation({
+        expression: emotion,
+        count: take,
+      });
+
+    const books = await this.findInIsbnList(isbnList, take);
     return {
+      expression: emotion,
+      genres,
       books,
-      expression: data,
     };
   }
 }

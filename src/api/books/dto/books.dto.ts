@@ -34,11 +34,17 @@ export class BookQueryDto {
 }
 
 export class RecommendedBookQueryDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  title: string;
+  isbn?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Transform(({ value }) => Number(value))
-  count: number;
+  count?: number;
+}
+
+export class ReviewsBookQueryDto {
+  @IsNotEmpty({ message: 'isbn is required' })
+  @IsString()
+  bookPath: string;
 }

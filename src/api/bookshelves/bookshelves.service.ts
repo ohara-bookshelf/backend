@@ -1,20 +1,21 @@
-import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   BookshelfQueryDto,
+  RecommendedBookshelfDto,
   RecommendedBookshelfQueryDto,
 } from './dto/bookshelves.dto';
 import { parseBookshelfQueryString } from './utils/queryParser';
-import { Bookshelf } from '@prisma/client';
+import { Book, Bookshelf } from '@prisma/client';
 import { Meta } from 'src/common/type';
+import { MlService } from '../ml/ml.service';
+import { MLException } from 'src/exceptions/ml.exception';
 
 @Injectable()
 export class BookshelvesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly httpService: HttpService,
+    private readonly mlService: MlService,
   ) {}
 
   async findAll(queryString: BookshelfQueryDto): Promise<{
@@ -60,44 +61,45 @@ export class BookshelvesService {
     return bookshelves;
   }
 
-  async findRecommended({ title, count }: RecommendedBookshelfQueryDto) {
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post<{ books: string[] }>(`${process.env.ML_API_URL}/recommend`, {
-          title: { text: title },
-          number: { count: +count },
-        })
-        .pipe(
-          catchError(() => {
-            throw 'An error happened!';
-          }),
-        ),
-    );
+  async getRecommendedBookshelves({
+    isbn,
+    count = 20,
+  }: RecommendedBookshelfQueryDto) {
+    // If no isbn is provided, get a random isbn from the most popular bookshelves
+    if (!isbn) {
+      const polularBookshelves = await this.findPopular({
+        take: count,
+        books: true,
+      }).then((bookshelves) => {
+        return bookshelves.flatMap((bookshelf) =>
+          bookshelf.books
+            .map((book: { book: Book }) => book.book.isbn)
+            .filter((isbn) => isbn !== undefined),
+        );
+      });
 
-    return this.prisma.bookshelf.findMany({
-      where: {
-        visible: 'PUBLIC',
-        books: {
-          some: {
-            book: {
-              isbn: {
-                in: data.books,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: +count,
-      include: {
-        owner: true,
-        _count: {
-          select: {
-            userForks: true,
-            books: true,
-          },
-        },
-      },
+      // If no bookshelves are found, get a random book from the database
+      if (!polularBookshelves.length) {
+        const books = await this.prisma.book.findMany();
+
+        if (!books.length)
+          throw new BadRequestException(
+            'No isbn provided or no books in the database',
+          );
+
+        const maxLength = books.length;
+        const randomIndex = Math.floor(Math.random() * maxLength);
+        isbn = books[randomIndex].isbn;
+      } else {
+        const maxLength = polularBookshelves.length;
+        const randomIndex = Math.floor(Math.random() * maxLength);
+        isbn = polularBookshelves[randomIndex];
+      }
+    }
+
+    return await this.mlService.getHybridBookshelfRecommendations({
+      isbn,
+      count,
     });
   }
 
@@ -121,36 +123,55 @@ export class BookshelvesService {
     });
   }
 
-  async getBookshelvesByExpression(expressionDto: {
-    imageString64: string;
-    take: number;
-  }): Promise<{ bookshelves: Bookshelf[]; expression: string }> {
-    const { imageString64, take = 10 } = expressionDto;
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post(`${process.env.EXPRESSION_API_URL}/process_image`, {
-          image: imageString64,
-        })
-        .pipe(
-          catchError(() => {
-            throw new BadRequestException('Error when detecting expression');
-          }),
-        ),
-    );
+  async getBookshelvesByExpression({
+    imageString64,
+    count,
+  }: RecommendedBookshelfDto): Promise<{
+    bookshelves: Bookshelf[];
+    expression: string;
+  }> {
+    const { emotion } = await this.mlService.detectExpression({
+      imageString64,
+    });
+
+    if (!emotion) throw new MLException('Error when detecting expression');
+
+    const { books: isbnList } =
+      await this.mlService.getExpressionBasedRecommendation({
+        expression: emotion,
+        count,
+      });
 
     const bookshelves = await this.prisma.bookshelf.findMany({
       where: {
-        name: {
-          contains: data,
-          mode: 'insensitive',
+        books: {
+          some: {
+            book: {
+              isbn: { in: isbnList },
+            },
+          },
         },
       },
-      take: +take,
+      include: {
+        owner: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
+        _count: {
+          select: {
+            userForks: true,
+            books: true,
+          },
+        },
+      },
+      take: count,
     });
 
     return {
       bookshelves,
-      expression: data,
+      expression: emotion,
     };
   }
 }
