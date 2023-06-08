@@ -106,14 +106,24 @@ export class BooksService {
     return await this.mlService.getBookReviews(book.book_path);
   }
 
-  async getBooksByExpression(expressionDto: {
-    imageString64: string;
-    take: number;
-  }): Promise<{ books: Book[]; expression: string; genres: string[] }> {
+  async getBooksByExpression(
+    expressionDto: {
+      imageString64: string;
+      take: number;
+    },
+    userId: string,
+  ): Promise<{ books: Book[]; expression: string; genres: string[] }> {
     const { imageString64, take = 10 } = expressionDto;
 
     const { emotion } = await this.mlService.detectExpression({
       imageString64,
+    });
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        expression: emotion,
+      },
     });
 
     const { books: isbnList, genres } =

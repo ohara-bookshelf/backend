@@ -21,6 +21,15 @@ export class AuthService {
       },
     });
 
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        expression: 'neutral',
+      },
+    });
+
     return {
       user: payload,
       access_token: this.jwtService.sign(payload),

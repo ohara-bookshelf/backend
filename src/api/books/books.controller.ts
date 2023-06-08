@@ -1,8 +1,18 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Book } from '@prisma/client';
 import { BooksService } from './books.service';
 import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Meta } from 'src/common/type';
+import { GetUser } from '../users/decorator/get-user.decorator';
+import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('books')
 export class BooksController {
@@ -28,10 +38,12 @@ export class BooksController {
     return this.booksService.getBookReviews(bookId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('by-expression')
   getBooksByExpression(
     @Body() expressionDto: { imageString64: string; take: number },
+    @GetUser('id') userId: string,
   ) {
-    return this.booksService.getBooksByExpression(expressionDto);
+    return this.booksService.getBooksByExpression(expressionDto, userId);
   }
 }

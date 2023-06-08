@@ -5,16 +5,6 @@ export type Meta = {
   totalPages: number;
 };
 
-export enum Expression {
-  ANGRY = 'angry',
-  DISGUST = 'disgust',
-  FEAR = 'fear',
-  HAPPY = 'happy',
-  SAD = 'sad',
-  SURPRISE = 'surprise',
-  NEUTRAL = 'neutral',
-}
-
 export type BookReview = {
   user: string;
   text: string;

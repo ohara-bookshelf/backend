@@ -1,3 +1,4 @@
+import { Expression } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsEnum,
@@ -7,7 +8,6 @@ import {
   Validate,
 } from 'class-validator';
 import { isValidBase64Image } from 'src/common/lib/validator';
-import { Expression } from 'src/common/type';
 
 export class DetectExpressionDto {
   @IsString()
