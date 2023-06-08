@@ -29,7 +29,7 @@ services:
     image: oharabookshelf/reviews
     restart: always
     ports:
-      - 8004:80
+      - 8004:8000
     volumes:
       - ~/bitirme_volume/reviews:/app/data
 
