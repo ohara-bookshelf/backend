@@ -9,11 +9,21 @@ import { BooksModule } from './api/books/books.module';
 import { UsersModule } from './api/users/users.module';
 import { BookshelvesModule } from './api/bookshelves/bookshelves.module';
 import { MlModule } from './api/ml/ml.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
+import { RedisClientOptions } from 'redis';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PassportModule.register({ session: true }),
+    CacheModule.register<RedisClientOptions>({
+      isGlobal: true,
+      store: redisStore,
+      url: process.env.REDIS_URL,
+      ttl: 10 * 60 * 60 * 24,
+    }),
+    ,
     AuthModule,
     PrismaModule,
     BooksModule,

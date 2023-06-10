@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  CACHE_MANAGER,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,12 +10,14 @@ import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
 import { Meta } from 'src/common/type';
 import { MlService } from '../ml/ml.service';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class BooksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mlService: MlService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async findAll(query: BookQueryDto): Promise<{ data: Book[]; meta: Meta }> {
@@ -103,7 +107,16 @@ export class BooksService {
 
     if (!book) throw new NotFoundException('Book not found');
 
-    return await this.mlService.getBookReviews(book.book_path);
+    const $books = `book-reviews-${book.id}`;
+    const cachedReviews = await this.cacheManager.get($books);
+
+    if (cachedReviews) return cachedReviews;
+
+    const reviews = await this.mlService.getBookReviews(book.book_path);
+
+    await this.cacheManager.set($books, reviews);
+
+    return reviews;
   }
 
   async getBooksByExpression(
