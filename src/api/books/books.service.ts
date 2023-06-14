@@ -115,7 +115,6 @@ export class BooksService {
     const reviews = await this.mlService.getBookReviews(book.book_path);
 
     await this.cacheManager.set($books, reviews);
-
     return reviews;
   }
 

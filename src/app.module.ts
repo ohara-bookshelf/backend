@@ -23,7 +23,6 @@ import { RedisClientOptions } from 'redis';
       url: process.env.REDIS_URL,
       ttl: 10 * 60 * 60 * 24,
     }),
-    ,
     AuthModule,
     PrismaModule,
     BooksModule,
