@@ -33,6 +33,16 @@ export class BookQueryDto {
   endYear?: number = 9999;
 }
 
+export class BookBySentimentDto {
+  @IsString()
+  @IsNotEmpty()
+  sentiment: string;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  count?: number;
+}
+
 export class RecommendedBookQueryDto {
   @IsOptional()
   @IsString()

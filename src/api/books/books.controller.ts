@@ -9,10 +9,15 @@ import {
 } from '@nestjs/common';
 import { Book } from '@prisma/client';
 import { BooksService } from './books.service';
-import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
+import {
+  BookBySentimentDto,
+  BookQueryDto,
+  RecommendedBookQueryDto,
+} from './dto/books.dto';
 import { Meta } from 'src/common/type';
 import { GetUser } from '../users/decorator/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards';
+import { SENTIMENT } from '../ml/types/ml.types';
 
 @Controller('books')
 export class BooksController {
@@ -28,6 +33,11 @@ export class BooksController {
     return this.booksService.getRecommendedBooks(query);
   }
 
+  @Get('by-sentiment')
+  getBooksBySentiment(@Query() query: BookBySentimentDto) {
+    return this.booksService.getBooksBySentiment(query);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.booksService.findOne(id);
@@ -36,6 +46,11 @@ export class BooksController {
   @Get(':bookId/reviews')
   getBookReviews(@Param('bookId') bookId: string) {
     return this.booksService.getBookReviews(bookId);
+  }
+
+  @Get(':bookId/sentiment')
+  getBookSentiment(@Param('bookId') bookId: string) {
+    return this.booksService.getBookSentiment(bookId);
   }
 
   @UseGuards(JwtAuthGuard)

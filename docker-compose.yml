@@ -33,6 +33,14 @@ services:
     volumes:
       - ~/bitirme_volume/reviews:/app/data
 
+  text-sentiment:
+    image: oharabookshelf/text-sentiment
+    restart: always
+    ports:
+      - 8005:5000
+    volumes:
+      - ~/bitirme_volume/text-sentiment:/app/data
+
   db:
     image: oharabookshelf/db
     restart: always

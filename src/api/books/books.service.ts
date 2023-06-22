@@ -6,11 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { BookQueryDto, RecommendedBookQueryDto } from './dto/books.dto';
+import {
+  BookBySentimentDto,
+  BookQueryDto,
+  RecommendedBookQueryDto,
+} from './dto/books.dto';
 import { Book, Prisma } from '@prisma/client';
 import { Meta } from 'src/common/type';
 import { MlService } from '../ml/ml.service';
 import { Cache } from 'cache-manager';
+import { SENTIMENT } from '../ml/types/ml.types';
 
 @Injectable()
 export class BooksService {
@@ -64,10 +69,16 @@ export class BooksService {
     };
   }
 
-  findOne(id: string) {
-    return this.prisma.book.findUnique({
+  async findOne(id: string) {
+    const book = await this.prisma.book.findUnique({
       where: { id },
     });
+
+    if (!book) throw new NotFoundException('Book not found');
+
+    const { sentiment } = await this.getBookSentiment(book.description);
+
+    return { book, sentiment };
   }
 
   async findInIsbnList(isbnList: string[], take = 10) {
@@ -118,6 +129,26 @@ export class BooksService {
     return reviews;
   }
 
+  async getBookSentiment(bookId: string): Promise<{ sentiment: SENTIMENT }> {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+    });
+
+    if (!book) throw new NotFoundException('Book not found');
+
+    const $books = `book-sentiment-${book.id}`;
+    const cachedSentiment = (await this.cacheManager.get($books)) as {
+      sentiment: SENTIMENT;
+    };
+
+    if (cachedSentiment) return cachedSentiment;
+
+    const sentiment = await this.mlService.getBookSentiment(book.description);
+
+    await this.cacheManager.set($books, { sentiment });
+    return { sentiment };
+  }
+
   async getBooksByExpression(
     expressionDto: {
       imageString64: string;
@@ -150,5 +181,18 @@ export class BooksService {
       genres,
       books,
     };
+  }
+
+  async getBooksBySentiment(query: BookBySentimentDto): Promise<Book[]> {
+    const { sentiment, count = 10 } = query;
+
+    const { books: isbnList } =
+      await this.mlService.getExpressionBasedRecommendation({
+        expression: sentiment,
+        count,
+      });
+
+    const books = await this.findInIsbnList(isbnList, count);
+    return books;
   }
 }

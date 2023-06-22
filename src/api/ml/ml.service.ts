@@ -7,6 +7,7 @@ import {
   BookReviewResponse,
   EmotionResponse,
   RecommendedResponse,
+  SENTIMENT,
 } from './types/ml.types';
 import {
   DetectExpressionDto,
@@ -194,5 +195,29 @@ export class MlService {
       reviews.length;
 
     return { reviews, rating };
+  }
+
+  async getBookSentiment(book_desc: string): Promise<SENTIMENT> {
+    const res: AxiosResponse<{
+      predicted_label: SENTIMENT;
+    }> = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.SENTIMENT_TEXT_API_URL}/predict`, {
+          text: book_desc,
+        })
+        .pipe(
+          catchError(() => {
+            throw new MLException(
+              'Cannot get book sentiment from sentiment api',
+            );
+          }),
+        ),
+    );
+
+    if (!res.data) {
+      throw new MLException('Cannot get book sentiment from sentiment api');
+    }
+
+    return res.data.predicted_label;
   }
 }
